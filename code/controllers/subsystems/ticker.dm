@@ -177,10 +177,7 @@ SUBSYSTEM_DEF(ticker)
 		mode.post_setup() // Drafts antags who don't override jobs.
 		to_world(SPAN_INFO("<B>Enjoy the game!</B>"))
 
-		for (var/mob/new_player/player in GLOB.player_list)
-			player.new_player_panel()
-
-	if(!GLOB.admins.len)
+	if(!length(GLOB.admins))
 		send2adminirc("Round has started with no admins online.")
 
 /datum/controller/subsystem/ticker/proc/playing_tick()
@@ -191,8 +188,8 @@ SUBSYSTEM_DEF(ticker)
 		Master.SetRunLevel(RUNLEVEL_POSTGAME)
 		end_game_state = END_GAME_READY_TO_END
 		invoke_async(src, .proc/declare_completion)
-		if(config.allow_map_switching && config.auto_map_vote && GLOB.all_maps.len > 1)
-			SSvote.initiate_vote(/datum/vote/map/end_game, automatic = 1)
+		//if(config.allow_map_switching && config.auto_map_vote && length(GLOB.all_maps) > 1)
+			//SSvote.initiate_vote(/datum/vote/map/end_game, automatic = 1)
 
 	else if(mode_finished && (end_game_state <= END_GAME_NOT_OVER))
 		end_game_state = END_GAME_MODE_FINISH_DONE
@@ -361,14 +358,25 @@ Helpers
 /datum/controller/subsystem/ticker/proc/create_characters()
 	for(var/mob/new_player/player in GLOB.player_list)
 		if(player && player.ready && player.mind)
+
 			if(player.mind.assigned_role=="AI")
 				player.close_spawn_windows()
 				player.AIize()
-			else if(!player.mind.assigned_role)
 				continue
-			else
-				if(player.create_character())
-					qdel(player)
+
+			if(!player.mind.assigned_role)
+				continue
+
+			player.spawning = 1
+			GLOB.using_map.fade_titlescreen(player.client)
+			sleep(20)
+
+			var/mob/living/carbon/human/new_char = player.create_character()
+			if(new_char)
+				qdel(player)
+				if(new_char.client)
+					new_char.overlay_fullscreen("init_blackout", /obj/screen/fullscreen/blackout/above_hud)
+					new_char.clear_fullscreen("init_blackout", 30)
 
 /datum/controller/subsystem/ticker/proc/lobby_players(list/players)
 	if (!players)
@@ -413,7 +421,7 @@ Helpers
 
 /datum/controller/subsystem/ticker/proc/attempt_late_antag_spawn(list/antag_choices)
 	var/datum/antagonist/antag = antag_choices[1]
-	while(antag_choices.len && antag)
+	while(length(antag_choices) && antag)
 		var/needs_ghost = antag.flags & (ANTAG_OVERRIDE_JOB | ANTAG_OVERRIDE_MOB)
 		if (needs_ghost)
 			looking_for_antags = 1
@@ -442,16 +450,16 @@ Helpers
 			return 1
 		else
 			if(antag.initial_spawn_req > 1)
-				to_world("Failed to find enough [antag.role_text_plural].")
+				log_and_message_admins("Failed to find enough [antag.role_text_plural].")
 
 			else
-				to_world("Failed to find a [antag.role_text].")
+				log_and_message_admins("Failed to find a [antag.role_text].")
 
 			antag_choices -= antag
 			if(length(antag_choices))
 				antag = antag_choices[1]
 				if(antag)
-					to_world("Attempting to spawn [antag.role_text_plural].")
+					log_and_message_admins("Attempting to spawn [antag.role_text_plural].")
 	return 0
 
 /datum/controller/subsystem/ticker/proc/game_finished()
@@ -505,7 +513,7 @@ Helpers
 		to_world("<b>[aiPlayer.name][show_ai_key ? " (played by [aiPlayer.key])" : ""]'s laws at the [aiPlayer.stat == 2 ? "time of their deactivation" : "end of round"] were:</b>")
 		aiPlayer.show_laws(1)
 
-		if (aiPlayer.connected_robots.len)
+		if (length(aiPlayer.connected_robots))
 			var/minions = "<b>[aiPlayer.name]'s loyal minions were:</b>"
 			for(var/mob/living/silicon/robot/robo in aiPlayer.connected_robots)
 				var/show_robot_key = robo.get_preference_value(/datum/client_preference/show_ckey_credits) == GLOB.PREF_SHOW
@@ -530,7 +538,7 @@ Helpers
 	if(dronecount)
 		to_world("<b>There [dronecount>1 ? "were" : "was"] [dronecount] industrious maintenance [dronecount>1 ? "drones" : "drone"] at the end of this round.</b>")
 
-	if(all_money_accounts.len)
+	if(length(all_money_accounts))
 		var/datum/money_account/max_profit = all_money_accounts[1]
 		var/datum/money_account/max_loss = all_money_accounts[1]
 		for(var/datum/money_account/D in all_money_accounts)
@@ -565,6 +573,11 @@ Helpers
 	log_game("Antagonists at round end were...")
 	for(var/i in total_antagonists)
 		log_game("[i]s[total_antagonists[i]].")
+
+	//make big obvious note in game logs that round ended (привет с ss220)
+	log_game("///////////////////////////////////////////////////////")
+	log_game("///////////////////// ROUND ENDED /////////////////////")
+	log_game("///////////////////////////////////////////////////////")
 
 /datum/controller/subsystem/ticker/proc/start_now(mob/user)
 	if(!(GAME_STATE == RUNLEVEL_LOBBY))

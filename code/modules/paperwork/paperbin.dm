@@ -11,6 +11,8 @@
 	layer = BELOW_OBJ_LAYER
 	var/amount = 30					//How much paper is in the bin.
 	var/list/papers = new/list()	//List of papers put in the bin for reference.
+	drop_sound = 'sound/items/drop/cardboardbox.ogg'
+	pickup_sound = 'sound/items/pickup/cardboardbox.ogg'
 
 
 /obj/item/paper_bin/MouseDrop(mob/user as mob)
@@ -41,7 +43,7 @@
 			to_chat(user, SPAN_NOTICE("You try to move your [temp.name], but cannot!"))
 			return
 	var/response = ""
-	if(!papers.len > 0)
+	if(!length(papers) > 0)
 		response = alert(user, "Do you take regular paper, or Carbon copy paper?", "Paper type request", "Regular", "Carbon-Copy", "Cancel")
 		if (response != "Regular" && response != "Carbon-Copy")
 			add_fingerprint(user)
@@ -52,8 +54,8 @@
 			update_icon()
 
 		var/obj/item/paper/P
-		if(papers.len > 0)	//If there's any custom paper on the stack, use that instead of creating a new paper.
-			P = papers[papers.len]
+		if(length(papers) > 0)	//If there's any custom paper on the stack, use that instead of creating a new paper.
+			P = papers[length(papers)]
 			papers.Remove(P)
 		else
 			if(response == "Regular")

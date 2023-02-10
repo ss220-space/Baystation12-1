@@ -3,17 +3,20 @@
 	desc = "A device that gives regular compression to the victim's ribcage, used in case of urgent heart issues."
 	icon = 'icons/obj/auto_cpr.dmi'
 	icon_state = "pumper"
+	drop_sound = 'sound/items/drop/device.ogg'
+	pickup_sound = 'sound/items/pickup/device.ogg'
 	w_class = ITEM_SIZE_NORMAL
 	origin_tech = list(TECH_MAGNET = 2, TECH_BIO = 2)
 	slot_flags = SLOT_OCLOTHING
 	var/last_pump
 	var/skilled_setup
+	sprite_sheets = list()
 
 /obj/item/auto_cpr/mob_can_equip(mob/living/carbon/human/H, slot, disable_warning = 0, force = 0)
 	. = ..()
 	if(force || !istype(H) || slot != slot_wear_suit)
 		return
-	if(H.species.get_bodytype() in list(SPECIES_HUMAN, SPECIES_SKRELL, SPECIES_UNATHI, SPECIES_ALIEN)) //non-humanoids btfo
+	if(H.species.get_bodytype() in list(SPECIES_HUMAN, SPECIES_SKRELL, SPECIES_UNATHI, SPECIES_ALIEN, SPECIES_RESOMI)) //non-humanoids btfo
 		return
 	else
 		return FALSE

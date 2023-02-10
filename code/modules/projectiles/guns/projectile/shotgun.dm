@@ -68,7 +68,7 @@
 		recentpump = world.time
 
 /obj/item/gun/projectile/shotgun/pump/proc/pump(mob/M as mob)
-	playsound(M, 'sound/weapons/shotgunpump.ogg', 60, 1)
+	playsound(M, "shotgun_pump", 60, 1)
 
 	if(chambered)//We have a shell in the chamber
 		chambered.dropInto(loc)//Eject casing
@@ -76,7 +76,7 @@
 			playsound(loc, pick(chambered.fall_sounds), 50, 1)
 		chambered = null
 
-	if(loaded.len)
+	if(length(loaded))
 		var/obj/item/ammo_casing/AC = loaded[1] //load next casing.
 		loaded -= AC //Remove casing from loaded list.
 		chambered = AC
@@ -181,7 +181,7 @@
 		recentpumpr = world.time
 
 /obj/item/gun/projectile/shotgun/pump/sawn/proc/pumpr(mob/living/user)
-	playsound(user, 'sound/weapons/shotgunpump.ogg', 60, 1)
+	playsound(user, "shotgun_pump", 60, 1)
 
 	if(chambered)//We have a shell in the chamber
 		chambered.dropInto(loc)//Eject casing
@@ -263,7 +263,7 @@
 			if(!cutter.slice(user))
 				return ..()
 		to_chat(user, SPAN_NOTICE("You begin to shorten the barrel of \the [src]."))
-		if(loaded.len)
+		if(length(loaded))
 			for(var/i in 1 to max_shells)
 				Fire(user, user)	//will this work? //it will. we call it twice, for twice the FUN
 			user.visible_message(SPAN_DANGER("The shotgun goes off!"), SPAN_DANGER("The shotgun goes off in your face!"))

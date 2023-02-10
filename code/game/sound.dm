@@ -54,6 +54,24 @@ GLOBAL_LIST_INIT(button_sound,list('sound/machines/button1.ogg','sound/machines/
 GLOBAL_LIST_INIT(chop_sound,list('sound/weapons/chop1.ogg','sound/weapons/chop2.ogg','sound/weapons/chop3.ogg'))
 GLOBAL_LIST_INIT(glasscrack_sound,list('sound/effects/glass_crack1.ogg','sound/effects/glass_crack2.ogg','sound/effects/glass_crack3.ogg','sound/effects/glass_crack4.ogg'))
 GLOBAL_LIST_INIT(tray_hit_sound,list('sound/items/trayhit1.ogg', 'sound/items/trayhit2.ogg'))
+GLOBAL_LIST_INIT(sword_pickup_sound,list('sound/items/pickup/sword1.ogg','sound/items/pickup/sword2.ogg','sound/items/pickup/sword3.ogg'))
+GLOBAL_LIST_INIT(sword_drop_sound, list('sound/items/equip/sword1.ogg',	'sound/items/equip/sword2.ogg'))
+GLOBAL_LIST_INIT(generic_drop_sound, list('sound/items/drop/generic1.ogg', 'sound/items/drop/generic2.ogg'))
+GLOBAL_LIST_INIT(generic_pickup_sound, list('sound/items/pickup/generic1.ogg','sound/items/pickup/generic2.ogg','sound/items/pickup/generic3.ogg'))
+GLOBAL_LIST_INIT(casing_drop_sound, list('sound/items/drop/casing1.ogg','sound/items/drop/casing2.ogg', 'sound/items/drop/casing3.ogg','sound/items/drop/casing4.ogg','sound/items/drop/casing5.ogg','sound/items/drop/casing6.ogg','sound/items/drop/casing7.ogg','sound/items/drop/casing8.ogg','sound/items/drop/casing9.ogg','sound/items/drop/casing10.ogg','sound/items/drop/casing11.ogg','sound/items/drop/casing12.ogg','sound/items/drop/casing13.ogg','sound/items/drop/casing15.ogg','sound/items/drop/casing16.ogg','sound/items/drop/casing17.ogg','sound/items/drop/casing18.ogg','sound/items/drop/casing19.ogg','sound/items/drop/casing20.ogg','sound/items/drop/casing21.ogg','sound/items/drop/casing22.ogg','sound/items/drop/casing23.ogg','sound/items/drop/casing24.ogg','sound/items/drop/casing25.ogg'))
+GLOBAL_LIST_INIT(casing_drop_sound_shotgun, list('sound/items/drop/casing_shotgun1.ogg','sound/items/drop/casing_shotgun2.ogg','sound/items/drop/casing_shotgun3.ogg','sound/items/drop/casing_shotgun4.ogg','sound/items/drop/casing_shotgun5.ogg'))
+GLOBAL_LIST_INIT(out_of_ammo, list('sound/weapons/empty/empty2.ogg','sound/weapons/empty/empty4.ogg','sound/weapons/empty/empty5.ogg'))
+GLOBAL_LIST_INIT(out_of_ammo_revolver, list('sound/weapons/empty/empty_revolver.ogg','sound/weapons/empty/empty_revolver3.ogg'))
+GLOBAL_LIST_INIT(out_of_ammo_rifle, list('sound/weapons/empty/empty_rifle1.ogg','sound/weapons/empty/empty_rifle2.ogg'))
+GLOBAL_LIST_INIT(out_of_ammo_shotgun, list('sound/weapons/empty/empty_shotgun1.ogg'))
+GLOBAL_LIST_INIT(metal_slide_reload, list('sound/weapons/reloads/pistol_metal_slide1.ogg','sound/weapons/reloads/pistol_metal_slide2.ogg','sound/weapons/reloads/pistol_metal_slide3.ogg','sound/weapons/reloads/pistol_metal_slide4.ogg','sound/weapons/reloads/pistol_metal_slide5.ogg','sound/weapons/reloads/pistol_metal_slide6.ogg'))
+GLOBAL_LIST_INIT(polymer_slide_reload, list('sound/weapons/reloads/pistol_polymer_slide1.ogg','sound/weapons/reloads/pistol_polymer_slide2.ogg','sound/weapons/reloads/pistol_polymer_slide3.ogg'))
+GLOBAL_LIST_INIT(rifle_slide_reload, list('sound/weapons/reloads/rifle_slide.ogg','sound/weapons/reloads/rifle_slide2.ogg','sound/weapons/reloads/rifle_slide3.ogg','sound/weapons/reloads/rifle_slide4.ogg','sound/weapons/reloads/rifle_slide5.ogg'))
+GLOBAL_LIST_INIT(revolver_reload, list('sound/weapons/reloads/revolver_reload.ogg'))
+GLOBAL_LIST_INIT(shotgun_pump, list('sound/weapons/reloads/shotgun_pump2.ogg','sound/weapons/reloads/shotgun_pump3.ogg','sound/weapons/reloads/shotgun_pump4.ogg','sound/weapons/reloads/shotgun_pump5.ogg','sound/weapons/reloads/shotgun_pump6.ogg'))
+GLOBAL_LIST_INIT(shotgun_reload, list('sound/weapons/reloads/reload_shell.ogg','sound/weapons/reloads/reload_shell2.ogg','sound/weapons/reloads/reload_shell3.ogg','sound/weapons/reloads/reload_shell4.ogg'))
+GLOBAL_LIST_INIT(heavy_machine_gun_reload, list('sound/weapons/reloads/hmg_reload1.ogg','sound/weapons/reloads/hmg_reload2.ogg','sound/weapons/reloads/hmg_reload3.ogg'))
+
 
 /proc/playsound(atom/source, soundin, vol as num, vary, extrarange as num, falloff, is_global, frequency, is_ambiance = 0)
 
@@ -119,6 +137,12 @@ var/global/const/FALLOFF_SOUNDS = 0.5
 			pressure_factor = max(pressure_factor, 0.15)	//hearing through contact
 
 		S.volume *= pressure_factor
+
+		if(istype(T,/turf/simulated) && istype(turf_source,/turf/simulated))
+			var/turf/simulated/sim_source = turf_source
+			var/turf/simulated/sim_destination = T
+			if(sim_destination.zone != sim_source.zone)
+				S.volume -= 30
 
 		if (S.volume <= 0)
 			return	//no volume means no sound
@@ -190,6 +214,24 @@ var/global/const/FALLOFF_SOUNDS = 0.5
 			if ("chop") soundin = pick(GLOB.chop_sound)
 			if ("glasscrack") soundin = pick(GLOB.glasscrack_sound)
 			if ("tray_hit") soundin = pick(GLOB.tray_hit_sound)
+			if ("drop_sword") soundin = pick(GLOB.sword_drop_sound)
+			if ("pickup_sword") soundin = pick(GLOB.sword_pickup_sound)
+			if ("generic_drop") soundin = pick(GLOB.generic_drop_sound)
+			if ("generic_pickup") soundin = pick(GLOB.generic_pickup_sound)
+			if ("casing_drop_sound") soundin = pick(GLOB.casing_drop_sound)
+			if ("casing_drop_sound_shotgun") soundin = pick(GLOB.casing_drop_sound_shotgun)
+			if ("out_of_ammo") soundin = pick(GLOB.out_of_ammo)
+			if ("out_of_ammo_revolver") soundin = pick(GLOB.out_of_ammo_revolver)
+			if ("out_of_ammo_rifle") soundin = pick(GLOB.out_of_ammo_rifle)
+			if ("out_of_ammo_shotgun") soundin = pick(GLOB.out_of_ammo_shotgun)
+			if ("metal_slide_reload") soundin = pick(GLOB.metal_slide_reload)
+			if ("polymer_slide_reload") soundin = pick(GLOB.polymer_slide_reload)
+			if ("rifle_slide_reload") soundin = pick(GLOB.rifle_slide_reload)
+			if ("revolver_reload") soundin = pick(GLOB.revolver_reload)
+			if ("shotgun_pump") soundin = pick(GLOB.shotgun_pump)
+			if ("shotgun_reload") soundin = pick(GLOB.shotgun_reload)
+			if ("heavy_machine_gun_reload") soundin = pick(GLOB.heavy_machine_gun_reload)
+
 	return soundin
 
 /client/verb/stop_sounds()

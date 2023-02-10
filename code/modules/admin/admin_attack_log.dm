@@ -18,7 +18,7 @@
 	message_staff(user ? "[key_name_admin(user)] [message]" : "EVENT [message]")
 
 /proc/log_and_message_admins_many(list/mob/users, message)
-	if(!users || !users.len)
+	if(!users || !length(users))
 		return
 
 	var/list/user_keys = list()
@@ -70,6 +70,7 @@
 
 	attack_log_repository.store_attack_log(attacker, victim, admin_message)
 
+	log_attack(attacker, victim, admin_message)
 	if(!notify_about_admin_attack_log(attacker, victim))
 		return
 
@@ -82,6 +83,7 @@
 		full_admin_message = "[key_name(victim)] [admin_message]"
 	full_admin_message = append_admin_tools(full_admin_message, attacker||victim, attack_location)
 	msg_admin_attack(full_admin_message)
+	log_attack(attacker, victim, admin_message)
 
 // Only store attack logs if any of the involved subjects have (had) a client
 /proc/store_admin_attack_log(mob/attacker, mob/victim)
@@ -102,7 +104,7 @@
 	return FALSE
 
 /proc/admin_attacker_log_many_victims(mob/attacker, list/mob/victims, attacker_message, victim_message, admin_message)
-	if(!victims || !victims.len)
+	if(!victims || !length(victims))
 		return
 
 	for(var/mob/victim in victims)

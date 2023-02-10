@@ -195,7 +195,6 @@ var/global/datum/controller/master/Master = new
 		CHECK_TICK
 	current_ticklimit = tick_limit_default
 	var/msg = "Initializations complete within [(Uptime() - start_uptime) / 10] second\s!"
-	report_progress(msg)
 	log_world(msg)
 
 	initializing = FALSE
@@ -223,6 +222,8 @@ var/global/datum/controller/master/Master = new
 	report_progress("MC: Runlevel changed from [old_runlevel] to [current_runlevel]")
 	if(current_runlevel < 1)
 		CRASH("Attempted to set invalid runlevel: [new_runlevel]")
+
+	GLOB.using_map.update_titlescreens()
 
 // Starts the mc, and sticks around to restart it if the loop ever ends.
 /datum/controller/master/proc/StartProcessing(delay)
@@ -268,9 +269,9 @@ var/global/datum/controller/master/Master = new
 
 		var/ss_runlevels = SS.runlevels
 		var/added_to_any = FALSE
-		for(var/I in 1 to GLOB.bitflags.len)
+		for(var/I in 1 to length(GLOB.bitflags))
 			if(ss_runlevels & GLOB.bitflags[I])
-				while(runlevel_sorted_subsystems.len < I)
+				while(length(runlevel_sorted_subsystems) < I)
 					runlevel_sorted_subsystems += list(list())
 				runlevel_sorted_subsystems[I] += SS
 				added_to_any = TRUE

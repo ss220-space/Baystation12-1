@@ -17,6 +17,9 @@
 	atom_flags = ATOM_FLAG_OPEN_CONTAINER
 	slot_flags = SLOT_BELT
 
+	drop_sound = 'sound/items/drop/gun.ogg'
+	pickup_sound = 'sound/items/pickup/gun.ogg'
+
 	// autoinjectors takes less time than a normal syringe (overriden for hypospray).
 	// This delay is only applied when injecting concious mobs, and is not applied for self-injection
 	// The 1.9 factor scales it so it takes the following number of seconds:
@@ -205,7 +208,7 @@
 
 /obj/item/reagent_containers/hypospray/autoinjector/examine(mob/user)
 	. = ..(user)
-	if(reagents && reagents.reagent_list.len)
+	if(reagents && length(reagents.reagent_list))
 		to_chat(user, SPAN_NOTICE("It is currently loaded."))
 	else
 		to_chat(user, SPAN_NOTICE("It is spent."))

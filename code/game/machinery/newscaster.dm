@@ -95,7 +95,7 @@
 /datum/feed_network/proc/insert_message_in_channel(datum/feed_channel/FC, datum/feed_message/newMsg)
 	FC.messages += newMsg
 	if(newMsg.img)
-		register_asset("newscaster_photo_[sanitize(FC.channel_name)]_[FC.messages.len].png", newMsg.img)
+		register_asset("newscaster_photo_[sanitize(FC.channel_name)]_[length(FC.messages)].png", newMsg.img)
 	newMsg.parent_channel = FC
 	FC.update()
 	alert_readers(FC.announcement)
@@ -187,7 +187,7 @@ var/global/list/obj/machinery/newscaster/allCasters = list() //Global list that 
 /obj/machinery/newscaster/Destroy()
 	if (connected_group)
 		connected_group.newscasters -= src
-	..()
+	. = ..()
 
 /obj/machinery/newscaster/on_update_icon()
 	if(inoperable())
@@ -792,6 +792,8 @@ var/global/list/obj/machinery/newscaster/allCasters = list() //Global list that 
 	var/datum/feed_message/important_message = null
 	var/scribble=""
 	var/scribble_page = null
+	drop_sound = 'sound/items/drop/wrapper.ogg'
+	pickup_sound = 'sound/items/pickup/wrapper.ogg'
 
 /obj/item/newspaper/attack_self(mob/user)
 	user.update_personal_goal(/datum/goal/achievement/newshound, TRUE)

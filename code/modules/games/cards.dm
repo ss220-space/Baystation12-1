@@ -51,6 +51,8 @@
 	name = "deck of cards"
 	desc = "A simple deck of playing cards."
 	icon_state = "deck"
+	drop_sound = 'sound/items/drop/paper.ogg'
+	pickup_sound = 'sound/items/pickup/paper.ogg'
 
 /obj/item/deck/cards/New()
 	..()
@@ -109,7 +111,7 @@
 
 	var/mob/living/carbon/user = usr
 
-	if(!cards.len)
+	if(!length(cards))
 		to_chat(usr, "There are no cards in the deck.")
 		return
 
@@ -136,7 +138,7 @@
 
 	if(usr.stat || !Adjacent(usr)) return
 
-	if(!cards.len)
+	if(!length(cards))
 		to_chat(usr, "There are no cards in the deck.")
 		return
 
@@ -186,7 +188,7 @@
 
 	if(!ishuman(over) || !(over in viewers(3))) return
 
-	if(!cards.len)
+	if(!length(cards))
 		to_chat(usr, "There are no cards in the deck.")
 		return
 
@@ -195,7 +197,8 @@
 /obj/item/pack
 	name = "card pack"
 	desc = "For those with disposible income."
-
+	drop_sound = 'sound/items/drop/paper.ogg'
+	pickup_sound = 'sound/items/pickup/paper.ogg'
 	icon_state = "card_pack"
 	icon = 'icons/obj/playing_cards.dmi'
 	w_class = ITEM_SIZE_TINY
@@ -224,6 +227,8 @@
 	desc = "Some playing cards."
 	icon = 'icons/obj/playing_cards.dmi'
 	icon_state = "empty"
+	drop_sound = 'sound/items/drop/paper.ogg'
+	pickup_sound = 'sound/items/pickup/paper.ogg'
 	w_class = ITEM_SIZE_TINY
 
 	var/concealed = 0
@@ -242,7 +247,7 @@
 			to_discard[P.name] = P
 		var/discarding = null
 		//don't prompt if only 1 card
-		if(to_discard.len == 1)
+		if(length(to_discard) == 1)
 			discarding = to_discard[1]
 		else
 			discarding = input(user, "Which card do you wish to take?") as null|anything in to_discard
@@ -256,7 +261,7 @@
 		new_hand.update_icon()
 		src.update_icon()
 
-		if(!cards.len)
+		if(!length(cards))
 			qdel(src)
 
 		user.put_in_hands(new_hand)
@@ -265,16 +270,16 @@
 
 /obj/item/hand/examine(mob/user)
 	. = ..()
-	if((!concealed || src.loc == user) && cards.len)
+	if((!concealed || src.loc == user) && length(cards))
 		to_chat(user, "It contains: ")
 		for(var/datum/playingcard/P in cards)
 			to_chat(user, "The [P.name].")
 
 /obj/item/hand/on_update_icon(direction = 0)
-	if(!cards.len)
+	if(!length(cards))
 		qdel(src)
 		return
-	else if(cards.len > 1)
+	else if(length(cards) > 1)
 		name = "hand of cards"
 		desc = "Some playing cards."
 	else if(concealed)
@@ -287,7 +292,7 @@
 
 	overlays.Cut()
 
-	if(cards.len == 1)
+	if(length(cards) == 1)
 		var/datum/playingcard/P = cards[1]
 		var/image/I = P.card_image(concealed, src.icon)
 		I.pixel_x += (-5+rand(10))
@@ -295,7 +300,7 @@
 		overlays += I
 		return
 
-	var/offset = Floor(20/cards.len)
+	var/offset = Floor(20/length(cards))
 	var/matrix/M = matrix()
 	M.Update(
 		rotation = (direction & EAST|WEST) ? 90 : 0,
@@ -340,7 +345,7 @@
 		if(isturf(D.loc))		//Decks hiding in inventories are safe. Respect the sanctity of loadout items.
 			deck_list += D
 
-	if(deck_list.len)
+	if(length(deck_list))
 		var/obj/item/deck/the_deck = pick(deck_list)
 		var/datum/playingcard/the_card = length(the_deck.cards) ? pick(the_deck.cards) : null
 

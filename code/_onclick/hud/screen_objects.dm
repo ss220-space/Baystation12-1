@@ -48,8 +48,8 @@
 	var/obj/item/owner
 
 /obj/screen/item_action/Destroy()
-	..()
 	owner = null
+	. = ..()
 
 /obj/screen/item_action/Click()
 	if(!usr || !owner)
@@ -75,9 +75,7 @@
 	if(usr.stat || usr.paralysis || usr.stunned || usr.weakened)
 		return 1
 	if(master)
-		var/obj/item/I = usr.get_active_hand()
-		if(I)
-			usr.ClickOn(master)
+		usr.ClickOn(master)
 	return 1
 
 /obj/screen/zone_sel
@@ -252,7 +250,7 @@
 									nicename |= "hardsuit"
 									tankcheck |= rig.air_supply
 
-							for(var/i=1, i<tankcheck.len+1, ++i)
+							for(var/i=1, i<length(tankcheck)+1, ++i)
 								if(istype(tankcheck[i], /obj/item/tank))
 									var/obj/item/tank/t = tankcheck[i]
 									if (!isnull(t.manipulated_by) && t.manipulated_by != C.real_name && findtext(t.desc,breathes))
@@ -270,7 +268,7 @@
 
 							var/best = 0
 							var/bestcontents = 0
-							for(var/i=1, i <  contents.len + 1 , ++i)
+							for(var/i=1, i <  length(contents) + 1 , ++i)
 								if(!contents[i])
 									continue
 								if(contents[i] > bestcontents)
@@ -297,7 +295,7 @@
 			usr.stop_pulling()
 		if("throw")
 			if(!usr.stat && isturf(usr.loc) && !usr.restrained())
-				usr:toggle_throw_mode()
+				usr.toggle_throw_mode()
 		if("drop")
 			if(usr.client)
 				usr.client.drop_item()
@@ -320,11 +318,13 @@
 					to_chat(R, "You haven't selected a module yet.")
 
 		if("radio")
-			if(issilicon(usr))
-				usr:radio_menu()
+			if(isrobot(usr))
+				var/mob/living/silicon/robot/R = usr
+				R.radio_menu()
 		if("panel")
-			if(issilicon(usr))
-				usr:installed_modules()
+			if(isrobot(usr))
+				var/mob/living/silicon/robot/R = usr
+				R.installed_modules()
 
 		if("store")
 			if(isrobot(usr))
@@ -336,16 +336,19 @@
 					to_chat(R, "You haven't selected a module yet.")
 
 		if("module1")
-			if(istype(usr, /mob/living/silicon/robot))
-				usr:toggle_module(1)
+			if(isrobot(usr))
+				var/mob/living/silicon/robot/R = usr
+				R.toggle_module(1)
 
 		if("module2")
-			if(istype(usr, /mob/living/silicon/robot))
-				usr:toggle_module(2)
+			if(isrobot(usr))
+				var/mob/living/silicon/robot/R = usr
+				R.toggle_module(2)
 
 		if("module3")
-			if(istype(usr, /mob/living/silicon/robot))
-				usr:toggle_module(3)
+			if(isrobot(usr))
+				var/mob/living/silicon/robot/R = usr
+				R.toggle_module(3)
 		else
 			return 0
 	return 1

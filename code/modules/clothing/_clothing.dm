@@ -1,6 +1,9 @@
 /obj/item/clothing
 	name = "clothing"
 	siemens_coefficient = 0.9
+	drop_sound = 'sound/items/drop/cloth.ogg'
+	pickup_sound = 'sound/items/pickup/cloth.ogg'
+
 	var/flash_protection = FLASH_PROTECTION_NONE	// Sets the item's level of flash protection.
 	var/tint = TINT_NONE							// Sets the item's level of visual impairment tint.
 	var/list/species_restricted = list(
@@ -25,6 +28,15 @@
 	accessories = list()
 	for (var/path in init_accessories)
 		attach_accessory(null, new path (src))
+
+
+/obj/item/clothing/Destroy()
+	for (var/obj/item/clothing/accessory/A as anything in accessories)
+		remove_accessory(null, A)
+		qdel(A)
+	accessories.Cut()
+	accessories = null
+	. = ..()
 
 
 // Updates the icons of the mob wearing the clothing item, if any.
@@ -57,7 +69,7 @@
 			bloodsies.appearance_flags |= NO_CLIENT_COLOR
 			ret.overlays	+= bloodsies
 
-	if(accessories.len)
+	if(length(accessories))
 		for(var/obj/item/clothing/accessory/A in accessories)
 			ret.overlays |= A.get_mob_overlay(user_mob, slot)
 	return ret
@@ -237,6 +249,10 @@ BLIND     // can't see anything
 	w_class = ITEM_SIZE_SMALL
 	body_parts_covered = EYES
 	slot_flags = SLOT_EYES
+
+	drop_sound = 'sound/items/drop/accessory.ogg'
+	pickup_sound = 'sound/items/pickup/accessory.ogg'
+
 	var/vision_flags = 0
 	var/darkness_view = 0//Base human is 2
 	var/see_invisible = -1
@@ -281,6 +297,9 @@ BLIND     // can't see anything
 		SPECIES_UNATHI = 'icons/mob/species/unathi/generated/onmob_hands_unathi.dmi'
 	)
 	blood_overlay_type = "bloodyhands"
+
+	drop_sound = 'sound/items/drop/gloves.ogg'
+	pickup_sound = 'sound/items/pickup/gloves.ogg'
 
 /obj/item/clothing/gloves/Initialize()
 	if(item_flags & ITEM_FLAG_PREMODIFIED)
@@ -387,6 +406,9 @@ BLIND     // can't see anything
 	item_flags = ITEM_FLAG_WASHER_ALLOWED
 	w_class = ITEM_SIZE_SMALL
 	blood_overlay_type = "helmetblood"
+
+	drop_sound = 'sound/items/drop/hat.ogg'
+	pickup_sound = 'sound/items/pickup/hat.ogg'
 
 	var/image/light_overlay_image
 	var/light_overlay = "helmet_light"
@@ -506,6 +528,9 @@ BLIND     // can't see anything
 		SPECIES_UNATHI = 'icons/mob/species/unathi/generated/onmob_mask_unathi.dmi',
 		)
 
+	drop_sound = 'sound/items/drop/hat.ogg'
+	pickup_sound = 'sound/items/pickup/hat.ogg'
+
 	var/voicechange = 0
 	var/list/say_messages
 	var/list/say_verbs
@@ -589,6 +614,10 @@ BLIND     // can't see anything
 		SPECIES_UNATHI = 'icons/mob/species/unathi/generated/onmob_feet_unathi.dmi',
 		)
 	blood_overlay_type = "shoeblood"
+
+	drop_sound = 'sound/items/drop/shoes.ogg'
+	pickup_sound = 'sound/items/pickup/shoes.ogg'
+
 	var/overshoes = 0
 	var/can_add_cuffs = TRUE
 	var/obj/item/handcuffs/attached_cuffs = null
@@ -793,6 +822,7 @@ BLIND     // can't see anything
 	item_flags = ITEM_FLAG_WASHER_ALLOWED
 	w_class = ITEM_SIZE_NORMAL
 	force = 0
+	equip_sound = 'sound/items/equip/jumpsuit.ogg'
 	var/has_sensor = SUIT_HAS_SENSORS //For the crew computer 2 = unable to change mode
 	var/sensor_mode = SUIT_SENSOR_OFF
 		/*
@@ -855,7 +885,7 @@ BLIND     // can't see anything
 			. += "_s"
 
 /obj/item/clothing/under/attack_hand(mob/user)
-	if(accessories && accessories.len)
+	if(accessories && length(accessories))
 		..()
 	if ((ishuman(usr) || issmall(usr)) && src.loc == user)
 		return
@@ -1063,6 +1093,8 @@ BLIND     // can't see anything
 	species_restricted = list("exclude", SPECIES_NABBER, SPECIES_DIONA)
 	var/undergloves = 1
 
+	drop_sound = 'sound/items/drop/ring.ogg'
+	pickup_sound = 'sound/items/pickup/ring.ogg'
 
 /obj/item/clothing/get_pressure_weakness(pressure,zone)
 	. = ..()

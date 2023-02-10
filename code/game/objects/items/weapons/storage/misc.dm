@@ -3,6 +3,8 @@
 	desc = "It's a small bag with dice inside."
 	icon = 'icons/obj/dice.dmi'
 	icon_state = "dicebag"
+	drop_sound = 'sound/items/drop/hat.ogg'
+	pickup_sound = 'sound/items/pickup/hat.ogg'
 
 /obj/item/storage/pill_bottle/dice/New()
 	..()
@@ -56,8 +58,14 @@
 	max_w_class = ITEM_SIZE_TINY
 	max_storage_space = 10
 	throwforce = 2
+
+	drop_sound = 'sound/items/drop/wrapper.ogg'
+	pickup_sound = 'sound/items/pickup/wrapper.ogg'
+	use_sound = 'sound/items/drop/paper.ogg'
+
 	slot_flags = SLOT_BELT
 	startswith = list(/obj/item/paper/cig = 10)
+
 	can_hold = list(
   /obj/item/paper/cig,
   /obj/item/clothing/mask/smokable/cigarette,
@@ -84,6 +92,9 @@
 	icon = 'icons/obj/cigarettes.dmi'
 	icon_state = "placeholder"
 	item_state = "cigpacket"
+	use_sound = 'sound/items/drop/paper.ogg'
+	drop_sound = 'sound/items/drop/wrapper.ogg'
+	pickup_sound = 'sound/items/pickup/wrapper.ogg'
 	w_class = ITEM_SIZE_SMALL
 	max_w_class = ITEM_SIZE_TINY
 	max_storage_space = 6
@@ -176,7 +187,32 @@
 
 /obj/item/storage/medical_lolli_jar/on_update_icon()
 	. = ..()
-	if(contents.len)
+	if(length(contents))
 		icon_state = "lollijar"
 	else
 		icon_state = "lollijar_empty"
+
+/obj/item/storage/music_tape_holder
+	name = "Tape holder"
+	desc = "It can hold a few tapes and screwdriwer."
+	icon_state = "tape_holder"
+	w_class = ITEM_SIZE_SMALL
+	max_w_class = ITEM_SIZE_SMALL //Don't worry, see can_hold[]
+	max_storage_space = 5
+	can_hold = list(
+		/obj/item/music_tape,
+		/obj/item/device/flashlight/pen,
+		/obj/item/device/tape,
+		/obj/item/material/coin,
+		/obj/item/dice,
+		/obj/item/disk,
+		/obj/item/paper,
+		/obj/item/paper_bundle,
+		/obj/item/pen,
+		/obj/item/photo,
+		/obj/item/screwdriver
+	)
+	startswith = list(
+		/obj/item/music_tape/custom = 2,
+		/obj/item/screwdriver = 1
+	)

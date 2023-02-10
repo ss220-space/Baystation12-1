@@ -169,7 +169,13 @@
 	corps += /obj/item/clothing/under/morpheus
 	corps += /obj/item/clothing/under/skinner
 	corps += /obj/item/clothing/under/dais
+	corps += /obj/item/clothing/under/rank/roboticist/bishop
 	gear_tweaks += new/datum/gear_tweak/path/specified_types_list(corps)
+
+/datum/gear/uniform/corp_guard
+	display_name = "corporate colours, guard"
+	path = /obj/item/clothing/under/rank/guard
+	flags = GEAR_HAS_TYPE_SELECTION
 
 /datum/gear/uniform/corp_exec
 	display_name = "corporate colours, senior researcher"

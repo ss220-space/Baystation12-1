@@ -78,7 +78,7 @@
 		var/list/security_setup = list()
 		security_setup["title"] = security_level.name
 		security_setup["ref"] = any2ref(security_level)
-		security_levels[++security_levels.len] = security_setup
+		security_levels[LIST_PRE_INC(security_levels)] = security_setup
 	data["security_levels"] = security_levels
 
 	var/datum/comm_message_listener/l = obtain_message_listener()
@@ -98,8 +98,9 @@
 			option["option_target"] = EO.option_target
 			option["needs_syscontrol"] = EO.needs_syscontrol
 			option["silicon_allowed"] = EO.silicon_allowed
-			processed_evac_options[++processed_evac_options.len] = option
+			processed_evac_options[LIST_PRE_INC(processed_evac_options)] = option
 	data["evac_options"] = processed_evac_options
+	data["lockdown_support"] = GLOB.using_map.lockdown_support //Нужно для отображения кнопки локдауна
 
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
 	if(!ui)
@@ -257,6 +258,23 @@
 			. = TOPIC_HANDLED
 			if(is_authenticated(user) && ntn_comm)
 				post_status("toggle_alert_border")
+		// Расширить до полноценного списка индивидуальных проков карты. Как реализовано например с эвакуацией
+		if("change_lights_auto")
+			if(!ntn_cont)
+				to_chat(usr, SPAN_WARNING("Консоль выдает предупреждающий звук. Кажется неполадки с сетью..."))
+				return
+			GLOB.using_map.reset_lights_automatics()
+		if("change_lockdown")
+			if(!ntn_cont)
+				to_chat(usr, SPAN_WARNING("Консоль выдает предупреждающий звук. Кажется неполадки с сетью..."))
+				return
+			GLOB.using_map.lockdown()
+			if(GLOB.using_map.lockdown)
+				ntnet_global.add_log("***[program.computer.get_network_tag()] активировал карантин на обьекте.***")
+				priority_announcement.Announce("Сохраняйте спокойствие и оставайтесь на местах. Врачи, инженеры, охрана - используйте карты доступа для временного открытия створок. На обьекте введен карантин.", "Введен карантин")
+			else
+				ntnet_global.add_log("***[program.computer.get_network_tag()] деактивировал карантин на обьекте.***")
+				priority_announcement.Announce("Карантин снят, возвращайтесь к обычному режиму передвижения. Проконсультируйтесь с главами, по ситуации на судне. Обратите внимание на текущий код угрозы.", "Карантин снят")
 
 #undef STATE_DEFAULT
 #undef STATE_MESSAGELIST
@@ -293,7 +311,7 @@ var/global/last_message_id = 0
 	comm_message_listeners.Add(src)
 
 /datum/comm_message_listener/proc/Add(list/message)
-	messages[++messages.len] = message
+	messages[LIST_PRE_INC(messages)] = message
 
 /datum/comm_message_listener/proc/Remove(list/message)
 	messages -= list(message)

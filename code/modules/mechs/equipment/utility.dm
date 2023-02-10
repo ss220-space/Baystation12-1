@@ -45,7 +45,7 @@
 		else if(chosen_obj.dropInto(get_turf(src)))
 			src.visible_message(SPAN_NOTICE("\The [user] pulls \the [chosen_obj] from \the [src]."))
 
-		if(!contents.len)
+		if(!length(contents))
 			qdel_self()
 		else update_icon()
 
@@ -246,7 +246,7 @@
 				var/turf/location = get_turf(src)
 				var/list/turfs = location.AdjacentTurfsSpace()
 				if(load.density)
-					if(turfs.len > 0)
+					if(length(turfs) > 0)
 						location = pick(turfs)
 						turfs -= location
 					else
@@ -337,7 +337,7 @@
 
 /obj/effect/ebeam/warp
 	plane = WARP_EFFECT_PLANE
-	no_z_overlay = TRUE
+	z_flags = ZMM_IGNORE
 
 /obj/effect/effect/warp/small
 	plane = WARP_EFFECT_PLANE
@@ -346,7 +346,7 @@
 	icon_state = "singularity_s3"
 	pixel_x = -32
 	pixel_y = -32
-	no_z_overlay = TRUE
+	z_flags = ZMM_IGNORE
 
 /obj/item/mech_equipment/catapult/proc/beamdestroyed()
 	if(beam)
@@ -721,8 +721,8 @@
 	desc = "A state of the art rotating, variable intensity, sequential-cascade plasma cutter. Resist the urge to aim this at your coworkers."
 	max_shots = 15
 	firemodes = list(
-		list(mode_name="single shot",	can_autofire=0, burst=1, fire_delay=6,  dispersion = list(0.0)),
-		list(mode_name="full auto",		can_autofire=1, burst=1, fire_delay=1, burst_accuracy = list(0,-1,-1,-1,-1,-2,-2,-2), dispersion = list(1.0, 1.0, 1.0, 1.0, 1.1)),
+		list(mode_name="single shot",	autofire_enabled=0, burst=1, fire_delay=6,  dispersion = list(0.0)),
+		list(mode_name="full auto",		autofire_enabled=1, burst=1, fire_delay=1, burst_accuracy = list(0,-1,-1,-1,-1,-2,-2,-2), dispersion = list(1.0, 1.0, 1.0, 1.0, 1.1)),
 		)
 
 /obj/item/mech_equipment/ionjets

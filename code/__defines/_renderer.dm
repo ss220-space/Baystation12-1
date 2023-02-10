@@ -216,6 +216,12 @@ GLOBAL_LIST_EMPTY(zmimic_renderers)
 	group = RENDER_GROUP_SCREEN
 	plane = HUD_PLANE
 
+/// Draws everything above user interface elements.
+/atom/movable/renderer/above_interface
+	name = "Above Interface"
+	group = RENDER_GROUP_SCREEN
+	plane = ABOVE_HUD_PLANE
+
 
 /* *
 * Group renderers
@@ -314,13 +320,3 @@ GLOBAL_LIST_EMPTY(zmimic_renderers)
 	. = ..()
 	filters += filter(type = "displace", render_source = "*warp", size = 5)
 	filters += filter(type = "displace", render_source = HEAT_COMPOSITE_TARGET, size = 2.5)
-
-/// Example of a warp filter for /renderer use
-/obj/effect/effect/warp
-	plane = WARP_EFFECT_PLANE
-	appearance_flags = PIXEL_SCALE
-	icon = 'icons/effects/352x352.dmi'
-	icon_state = "singularity_s11"
-	pixel_x = -176
-	pixel_y = -176
-	no_z_overlay = TRUE

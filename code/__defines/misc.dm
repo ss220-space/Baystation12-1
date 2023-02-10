@@ -29,6 +29,10 @@
 #define SEE_INVISIBLE_MINIMUM 5
 #define INVISIBILITY_MAXIMUM 100
 
+// The SQL version required by this version of the code
+#define DB_VERSION 8
+
+
 // Some arbitrary defines to be used by self-pruning global lists. (see master_controller)
 #define PROCESS_KILL 26 // Used to trigger removal from a processing list.
 
@@ -187,6 +191,10 @@
 #define AI_POWERUSAGE_NORMAL 5
 #define AI_POWERUSAGE_RECHARGING 7
 
+// AI button defines
+#define AI_BUTTON_PROC_BELONGS_TO_CALLER 1
+#define AI_BUTTON_INPUT_REQUIRES_SELECTION 2
+
 // Above values get multiplied by this when converting AI oxyloss -> watts.
 // For now, one oxyloss point equals 10kJ of energy, so normal AI uses 5 oxyloss per tick (50kW or 70kW if charging)
 #define AI_POWERUSAGE_OXYLOSS_TO_WATTS_MULTIPLIER 10000
@@ -277,7 +285,7 @@
 //Misc text define. Does 4 spaces. Used as a makeshift tabulator.
 #define FOURSPACES "&nbsp;&nbsp;&nbsp;&nbsp;"
 
-#define INCREMENT_WORLD_Z_SIZE world.maxz++; if (SSzcopy.zlev_maximums.len) { SSzcopy.calculate_zstack_limits() }
+#define INCREMENT_WORLD_Z_SIZE world.maxz++; if (length(SSzcopy.zlev_maximums)) { SSzcopy.calculate_zstack_limits() }
 
 //-- Masks for /atom/var/init_flags --
 //- machinery
@@ -315,3 +323,24 @@
 #define ATOM_FLOURESCENCE_NONE 0 // Not flourescent
 #define ATOM_FLOURESCENCE_INACTIVE 1 // Flourescent but not actively lit
 #define ATOM_FLOURESCENCE_ACTVE 2 // Flourescent and actively lit. Helps prevent repeated processing on a flourescent atom by multiple UV lights
+
+
+// Helper macro for generating stringified name text for IDs located inside objects, i.e. PDAs or wallets. Used for feedback and interaction messages.
+#define GET_ID_NAME(ID, HOLDER) (ID == HOLDER ? "\the [ID]" : "\the [ID] in \the [HOLDER]")
+
+//NOTE: INTENT_HOTKEY_* defines are not actual intents!
+//they are here to support hotkeys
+#define INTENT_HOTKEY_LEFT  "left"
+#define INTENT_HOTKEY_RIGHT "right"
+
+
+/proc/get_dist_bounds(var/target, var/source) // Alternative to get_dist for multi-turf objects
+	return Ceiling(bounds_dist(target, source)/world.icon_size) + 1
+
+
+#define any2bool(expression) (!(!(expression)))
+
+//Area gravity flags
+#define AREA_GRAVITY_NEVER  -1 // No gravity, never
+#define AREA_GRAVITY_NORMAL 1 // Gravity in area will act like always
+#define AREA_GRAVITY_ALWAYS 2 // No matter what, gravity always would be

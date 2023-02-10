@@ -2,27 +2,30 @@
 
 /obj/machinery/atmospherics/pipe
 
-	var/datum/gas_mixture/air_temporary // used when reconstructing a pipeline that broke
-	var/datum/pipeline/parent
-	var/volume = 0
-	var/leaking = 0		// Do not set directly, use set_leaking(TRUE/FALSE)
 	use_power = POWER_USE_OFF
+	stat_immune = MACHINE_STAT_NOINPUT | MACHINE_STAT_NOSCREEN | MACHINE_STAT_NOPOWER
 	uncreated_component_parts = null // No apc connection
 
-	var/maximum_pressure = 210 * ONE_ATMOSPHERE
-	var/fatigue_pressure = 170 * ONE_ATMOSPHERE
-	var/alert_pressure = 170 * ONE_ATMOSPHERE
 	var/in_stasis = 0
-		//minimum pressure before check_pressure(...) should be called
 	var/obj/machinery/clamp/clamp // Linked stasis clamp
 
 	can_buckle = TRUE
 	buckle_require_restraints = TRUE
-	var/datum/sound_token/sound_token
 	build_icon_state = "simple"
 	build_icon = 'icons/obj/pipe-item.dmi'
 	pipe_class = PIPE_CLASS_BINARY
 	atom_flags = ATOM_FLAG_CAN_BE_PAINTED
+
+	var/datum/gas_mixture/air_temporary    // used when reconstructing a pipeline that broke
+	var/datum/pipeline/parent
+	var/volume = 0
+	var/leaking = 0		// Do not set directly, use set_leaking(TRUE/FALSE)
+
+	//minimum pressure before check_pressure(...) should be called
+	var/maximum_pressure = 210 * ONE_ATMOSPHERE
+	var/fatigue_pressure = 170 * ONE_ATMOSPHERE
+	var/alert_pressure = 170 * ONE_ATMOSPHERE
+	var/datum/sound_token/sound_token
 
 /obj/machinery/atmospherics/pipe/drain_power()
 	return -1
@@ -100,8 +103,15 @@
 	QDEL_NULL(sound_token)
 	if (clamp)
 		clamp.detach()
+
 	if(air_temporary)
 		loc.assume_air(air_temporary)
+
+	if(in_stasis)
+		var/obj/machinery/clamp/C = locate() in get_turf(src)
+		if(C.target == src)
+			C.open()
+			C.removal()
 
 	. = ..()
 
@@ -202,6 +212,9 @@
 /obj/machinery/atmospherics/pipe/simple/Process()
 	if(!parent) //This should cut back on the overhead calling build_network thousands of times per cycle
 		..()
+	else if(parent.air.compare(loc.return_air()) || in_stasis)
+		update_sound(0)
+		. = PROCESS_KILL
 	else if(leaking)
 		parent.mingle_with_turf(loc, volume)
 		var/air = parent.air && parent.air.return_pressure()
@@ -211,6 +224,9 @@
 			update_sound(0)
 	else
 		. = PROCESS_KILL
+
+/obj/machinery/atmospherics/pipe/proc/try_leak()
+	set_leaking(!in_stasis && !(node1 && node2))
 
 /obj/machinery/atmospherics/pipe/simple/check_pressure(pressure)
 	// Don't ask me, it happened somehow.
@@ -280,10 +296,9 @@
 		qdel(src)
 	else if(node1 && node2)
 		overlays += icon_manager.get_atmos_icon("pipe", , pipe_color, "[pipe_icon]intact[icon_connect_type]")
-		set_leaking(FALSE)
 	else
 		overlays += icon_manager.get_atmos_icon("pipe", , pipe_color, "[pipe_icon]exposed[node1?1:0][node2?1:0][icon_connect_type]")
-		set_leaking(TRUE)
+	try_leak()
 
 /obj/machinery/atmospherics/pipe/simple/update_underlays()
 	return
@@ -505,13 +520,16 @@
 	if(node3)
 		node3.update_underlays()
 
+/obj/machinery/atmospherics/pipe/manifold/try_leak()
+	set_leaking(!in_stasis && !(node1 && node2 && node3))
+
 /obj/machinery/atmospherics/pipe/manifold/on_update_icon(safety = 0)
 	if(!atmos_initalized)
 		return
 	if(!check_icon_cache())
 		return
 
-	set_leaking(!(node1 && node2 && node3))
+	try_leak()
 	alpha = 255
 
 	if(!node1 && !node2 && !node3)
@@ -766,13 +784,16 @@
 	if(node4)
 		node4.update_underlays()
 
+/obj/machinery/atmospherics/pipe/manifold4w/try_leak()
+	set_leaking(!in_stasis && !(node1 && node2 && node3 && node4))
+
 /obj/machinery/atmospherics/pipe/manifold4w/on_update_icon(safety = 0)
 	if(!atmos_initalized)
 		return
 	if(!check_icon_cache())
 		return
 
-	set_leaking(!(node1 && node2 && node3 && node4))
+	try_leak()
 	alpha = 255
 
 	if(!node1 && !node2 && !node3 && !node4)

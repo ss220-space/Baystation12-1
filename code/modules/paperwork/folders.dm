@@ -4,6 +4,8 @@
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "folder"
 	w_class = ITEM_SIZE_SMALL
+	drop_sound = 'sound/items/drop/paper.ogg'
+	pickup_sound = 'sound/items/pickup/paper.ogg'
 
 /obj/item/folder/blue
 	desc = "A blue folder."
@@ -27,7 +29,7 @@
 
 /obj/item/folder/on_update_icon()
 	overlays.Cut()
-	if(contents.len)
+	if(length(contents))
 		overlays += "folder_paper"
 	return
 
@@ -117,7 +119,7 @@
 	if(sealed)
 		icon_state = "envelope_sealed"
 	else
-		icon_state = "envelope[contents.len > 0]"
+		icon_state = "envelope[length(contents) > 0]"
 
 /obj/item/folder/envelope/examine(mob/user)
 	. = ..()

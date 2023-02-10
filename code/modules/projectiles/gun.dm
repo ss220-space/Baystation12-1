@@ -102,9 +102,24 @@
 	var/has_safety = TRUE
 	var/safety_icon 	   //overlay to apply to gun based on safety state, if any
 
+	var/autofire_enabled = FALSE
+	var/atom/autofiring_at
+	var/mob/autofiring_by
+	var/autofiring_timer
+
+
+	var/empty_sound = "out_of_ammo"
+	drop_sound = 'sound/items/drop/gun.ogg'
+	pickup_sound = 'sound/items/pickup/gun.ogg'
+
+	/// What skill governs safe handling of this gun. Basic skill level and higher will also show the safety overlay to the player.
+	var/gun_skill = SKILL_WEAPONS
+	/// What skill level is needed in the gun's skill to completely negate the chance of an accident.
+	var/safety_skill = SKILL_EXPERT
+
 /obj/item/gun/Initialize()
 	. = ..()
-	for(var/i in 1 to firemodes.len)
+	for(var/i in 1 to length(firemodes))
 		firemodes[i] = new /datum/firemode(src, firemodes[i])
 
 	if(isnull(scoped_accuracy))
@@ -112,6 +127,51 @@
 
 	if(scope_zoom)
 		verbs += /obj/item/gun/proc/scope
+
+/obj/item/gun/Destroy()
+	// autofire timer is automatically cleaned up
+	autofiring_at = null
+	autofiring_by = null
+	. = ..()
+
+/obj/item/gun/proc/set_autofire(var/atom/fire_at, var/mob/fire_by)
+	. = TRUE
+	if(!istype(fire_at) || !istype(fire_by))
+		. = FALSE
+	else if(QDELETED(fire_at) || QDELETED(fire_by) || QDELETED(src))
+		. = FALSE
+	else if(!autofire_enabled)
+		. = FALSE
+	if(.)
+		autofiring_at = fire_at
+		autofiring_by = fire_by
+		if(!autofiring_timer)
+			autofiring_timer = addtimer(new Callback(src, .proc/handle_autofire), burst_delay, (TIMER_STOPPABLE | TIMER_LOOP | TIMER_UNIQUE | TIMER_OVERRIDE))
+	else
+		clear_autofire()
+
+/obj/item/gun/proc/clear_autofire()
+	autofiring_at = null
+	autofiring_by = null
+	if(autofiring_timer)
+		deltimer(autofiring_timer)
+		autofiring_timer = null
+
+/obj/item/gun/proc/handle_autofire()
+	set waitfor = FALSE
+	. = TRUE
+	if(QDELETED(autofiring_at) || QDELETED(autofiring_by))
+		. = FALSE
+	else if(autofiring_by.get_active_hand() != src || autofiring_by.incapacitated())
+		. = FALSE
+	else if(!autofiring_by.client || !(autofiring_by in view(autofiring_by.client.view, autofiring_by)))
+		. = FALSE
+	if(!.)
+		clear_autofire()
+	else if(can_autofire())
+		autofiring_by.set_dir(get_dir(src, autofiring_at))
+		Fire(autofiring_at, autofiring_by, null, (get_dist(autofiring_at, autofiring_by) <= 1), FALSE, FALSE)
+
 
 /obj/item/gun/update_twohanding()
 	if(one_hand_penalty)
@@ -129,7 +189,7 @@
 			else
 				item_state_slots[slot_l_hand_str] = initial(item_state)
 				item_state_slots[slot_r_hand_str] = initial(item_state)
-		if(M.skill_check(SKILL_WEAPONS,SKILL_BASIC))
+		if(M.skill_check(gun_skill,SKILL_BASIC))
 			overlays += image('icons/obj/guns/gui.dmi',"safety[safety()]")
 	if(safety_icon)
 		overlays += image(icon,"[safety_icon][safety()]")
@@ -215,9 +275,11 @@
 	update_icon()
 	return ..()
 
-/obj/item/gun/proc/Fire(atom/target, mob/living/user, clickparams, pointblank=0, reflex=0)
-	if(!user || !target) return
-	if(target.z != user.z) return
+/obj/item/gun/proc/Fire(atom/target, mob/living/user, clickparams, pointblank=0, reflex=0, set_click_cooldown=TRUE, var/list/params = list())
+	if(!user || !target)
+		return
+	if(target.z != user.z)
+		return
 
 	add_fingerprint(user)
 
@@ -237,10 +299,10 @@
 		return
 
 	last_safety_check = world.time
-	var/shoot_time = (burst - 1)* burst_delay
-	user.setClickCooldown(shoot_time) //no clicking on things while shooting
-	user.SetMoveCooldown(shoot_time) //no moving while shooting either
-	next_fire_time = world.time + shoot_time
+	if(set_click_cooldown)
+		var/shoot_time = (burst - 1) * burst_delay
+		user.setClickCooldown(shoot_time) //no clicking on things while shooting
+		next_fire_time = world.time + shoot_time
 
 	var/held_twohanded = (user.can_wield_item(src) && src.is_held_twohanded(user))
 
@@ -270,8 +332,8 @@
 
 	//update timing
 	var/delay = max(burst_delay+1, fire_delay)
-	user.setClickCooldown(min(delay, DEFAULT_QUICK_COOLDOWN))
-	user.SetMoveCooldown(move_delay)
+	if(delay)
+		user.setClickCooldown(min(delay, DEFAULT_QUICK_COOLDOWN))
 	next_fire_time = world.time + delay
 
 //obtains the next projectile to fire
@@ -292,7 +354,7 @@
 		user.visible_message("*click click*", SPAN_DANGER("*click*"))
 	else
 		src.visible_message("*click click*")
-	playsound(src.loc, 'sound/weapons/empty.ogg', 100, 1)
+	playsound(src.loc, empty_sound, 100, 1)
 
 /obj/item/gun/proc/handle_click_safety(mob/user)
 	user.visible_message(SPAN_WARNING("[user] squeezes the trigger of \the [src] but it doesn't move!"), SPAN_WARNING("You squeeze the trigger but it doesn't move!"), range = 3)
@@ -313,7 +375,7 @@
 				SPAN_DANGER("You hear a [fire_sound_text]!")
 			)
 
-		if (pointblank)
+		if (pointblank && ismob(target))
 			admin_attack_log(user, target,
 				"shot point blank with \a [type]",
 				"shot point blank with \a [type]",
@@ -341,8 +403,7 @@
 						to_chat(user, SPAN_WARNING("You struggle to hold \the [src] steady!"))
 
 		if(screen_shake)
-			spawn()
-				shake_camera(user, screen_shake+1, screen_shake)
+			shake_camera(user, (burst > 1? burst_delay : fire_delay), screen_shake)
 
 	if(combustion)
 		var/turf/curloc = get_turf(src)
@@ -381,8 +442,8 @@
 	if(!istype(P))
 		return //default behaviour only applies to true projectiles
 
-	var/acc_mod = burst_accuracy[min(burst, burst_accuracy.len)]
-	var/disp_mod = dispersion[min(burst, dispersion.len)]
+	var/acc_mod = burst_accuracy[min(burst, length(burst_accuracy))]
+	var/disp_mod = dispersion[min(burst, length(dispersion))]
 	var/stood_still = last_handled
 	//Not keeping gun active will throw off aim (for non-Masters)
 	if(user.skill_check(SKILL_WEAPONS, SKILL_PROF))
@@ -469,7 +530,7 @@
 
 	last_safety_check = world.time
 	admin_attacker_log(M, "is trying to commit suicide with \a [src]")
-	user.visible_message(M, SPAN_WARNING("\The [M] pulls the trigger."))
+	user.visible_message(SPAN_WARNING("\The [M] pulls the trigger."))
 	to_chat(M, SPAN_NOTICE("You feel \the [src] go off..."))
 
 	var/obj/item/organ/brain = M.internal_organs_by_name[BP_BRAIN] || M.internal_organs_by_name[BP_POSIBRAIN]
@@ -552,7 +613,7 @@
 /obj/item/gun/examine(mob/user)
 	. = ..()
 	if(user.skill_check(SKILL_WEAPONS, SKILL_BASIC))
-		if(firemodes.len > 1)
+		if(length(firemodes) > 1)
 			var/datum/firemode/current_mode = firemodes[sel_mode]
 			to_chat(user, "The fire selector is set to [current_mode.name].")
 	if(has_safety)
@@ -575,10 +636,10 @@
 	return new_mode
 
 /obj/item/gun/proc/get_next_firemode()
-	if(firemodes.len <= 1)
+	if(length(firemodes) <= 1)
 		return null
 	. = sel_mode + 1
-	if(. > firemodes.len)
+	if(. > length(firemodes))
 		. = 1
 
 /obj/item/gun/attack_self(mob/user)
@@ -627,16 +688,20 @@
 	var/list/turfs = list()
 	for(var/turf/T in view())
 		turfs += T
-	if(turfs.len)
+	if(length(turfs))
 		var/turf/shoot_to = pick(turfs)
 		target.visible_message(SPAN_DANGER("\The [src] goes off during the struggle!"))
 		afterattack(shoot_to,target)
 		return 1
 
-/obj/item/gun/proc/can_autofire()
-	return (can_autofire && world.time >= next_fire_time)
+/obj/item/gun/dropped(mob/living/user)
+	. = ..()
+	clear_autofire()
 
-/obj/item/gun/proc/check_accidents(mob/living/user, message = "[user] fumbles with the [src] and it goes off!",skill_path = SKILL_WEAPONS, fail_chance = 20, no_more_fail = SKILL_EXPERT, factor = 2)
+/obj/item/gun/proc/can_autofire()
+	return (autofire_enabled && world.time >= next_fire_time)
+
+/obj/item/gun/proc/check_accidents(mob/living/user, message = "[user] fumbles with \the [src] and it goes off!",skill_path = gun_skill, fail_chance = 20, no_more_fail = safety_skill, factor = 2)
 	if(istype(user))
 		if(!safety() && user.skill_fail_prob(skill_path, fail_chance, no_more_fail, factor) && special_check(user))
 			user.visible_message(SPAN_WARNING(message))

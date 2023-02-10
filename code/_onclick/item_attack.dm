@@ -52,8 +52,6 @@ avoid code duplication. This includes items that may sometimes act as a standard
 		return TRUE
 	if (A == user)
 		. = user.use_user(src, click_params)
-	if (!. && istype(src, /obj/item/grab))
-		. = A.use_grab(src, click_params)
 	if (!. && user.a_intent == I_HURT)
 		. = A.use_weapon(src, user, click_params)
 	if (!.)
@@ -119,7 +117,7 @@ avoid code duplication. This includes items that may sometimes act as a standard
 /atom/proc/use_weapon(obj/item/weapon, mob/user, list/click_params = list())
 	SHOULD_CALL_PARENT(TRUE)
 	// Standardized damage
-	if (user.a_intent == I_HURT && weapon.force > 0 && get_max_health() && !HAS_FLAGS(weapon.item_flags, ITEM_FLAG_NO_BLUDGEON))
+	if (weapon.force > 0 && get_max_health() && !HAS_FLAGS(weapon.item_flags, ITEM_FLAG_NO_BLUDGEON))
 		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
 		user.do_attack_animation(src)
 		var/damage_flags = weapon.damage_flags()
@@ -179,10 +177,14 @@ avoid code duplication. This includes items that may sometimes act as a standard
  * Returns boolean to indicate whether the attack call was handled or not.
  */
 /atom/proc/attackby(obj/item/W, mob/user, click_params)
+	return FALSE
+
+
+/mob/living/attackby(obj/item/W, mob/user, click_params)
 	// Legacy mob attack code is handled by the weapon
 	if (W.attack(src, user, user.zone_sel ? user.zone_sel.selecting : ran_zone()))
 		return TRUE
-	return FALSE
+	return ..()
 
 
 /**

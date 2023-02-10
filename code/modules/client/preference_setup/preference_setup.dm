@@ -45,6 +45,11 @@ var/global/const/CHARACTER_PREFERENCE_INPUT_TITLE = "Character Preference"
 	sort_order = 8
 	category_item_type = /datum/category_item/player_setup_item/law_pref
 
+/datum/category_group/player_setup_category/controls
+	name = "Controls"
+	sort_order = 9
+	category_item_type = /datum/category_item/player_setup_item/controls
+
 
 /****************************
 * Category Collection Setup *
@@ -153,7 +158,7 @@ var/global/const/CHARACTER_PREFERENCE_INPUT_TITLE = "Character Preference"
 /datum/category_group/player_setup_category/proc/content(mob/user)
 	. = "<table style='width:100%'><tr style='vertical-align:top'><td style='width:50%'>"
 	var/current = 0
-	var/wrap_index = item_wrap_index || items.len / 2
+	var/wrap_index = item_wrap_index || length(items) / 2
 	for(var/datum/category_item/player_setup_item/player_setup_item in items)
 		if(wrap_index && current++ >= wrap_index)
 			wrap_index = 0

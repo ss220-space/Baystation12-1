@@ -133,7 +133,7 @@
 		return
 	message = process_chat_markup(message)
 	if (message)
-		log_emote("[name]/[key] : [message]")
+		log_emote(message, src)
 	//do not show NPC animal emotes to ghosts, it turns into hellscape
 	var/check_ghosts = client ? /datum/client_preference/ghost_sight : null
 	if(m_type == VISIBLE_MESSAGE)

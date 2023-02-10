@@ -73,6 +73,9 @@
 	if(modifiers["ctrl"] && modifiers["alt"])
 		CtrlAltClickOn(A)
 		return 1
+	if(modifiers["middle"] && modifiers["alt"])
+		AltMiddleClickOn(A)
+		return 1
 	if(modifiers["middle"])
 		MiddleClickOn(A)
 		return 1
@@ -221,7 +224,7 @@
  * Returns boolean - Whether or not the mob was able to perform the interaction.
  */
 /mob/proc/RangedAttack(atom/A, params)
-	if(!mutations.len)
+	if(!length(mutations))
 		return FALSE
 
 	if((MUTATION_LASER in mutations) && a_intent == I_HURT)
@@ -247,6 +250,9 @@
 /mob/proc/MiddleClickOn(atom/A)
 	swap_hand()
 	return
+
+/mob/proc/AltMiddleClickOn(var/atom/A)
+	pointed(A)
 
 // In case of use break glass
 /*

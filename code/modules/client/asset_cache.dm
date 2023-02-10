@@ -56,7 +56,7 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 	show_browser(client, "<script>window.location.href=\"?asset_cache_confirm_arrival=[job]\"</script>", "window=asset_cache_browser")
 
 	var/t = 0
-	var/timeout_time = (ASSET_CACHE_SEND_TIMEOUT * client.sending.len) + ASSET_CACHE_SEND_TIMEOUT
+	var/timeout_time = (ASSET_CACHE_SEND_TIMEOUT * length(client.sending)) + ASSET_CACHE_SEND_TIMEOUT
 	while(client && !client.completed_asset_jobs.Find(job) && t < timeout_time) // Reception is handled in Topic()
 		sleep(1) // Lock up the caller until this is received.
 		t++
@@ -83,9 +83,9 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 			return 0
 
 	var/list/unreceived = asset_list - (client.cache + client.sending)
-	if(!unreceived || !unreceived.len)
+	if(!unreceived || !length(unreceived))
 		return 0
-	if (unreceived.len >= ASSET_CACHE_TELL_CLIENT_AMOUNT)
+	if (length(unreceived) >= ASSET_CACHE_TELL_CLIENT_AMOUNT)
 		to_chat(client, "Sending Resources...")
 	var/singleton/asset_cache/asset_cache = GET_SINGLETON(/singleton/asset_cache)
 	for(var/asset in unreceived)
@@ -104,7 +104,7 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 	show_browser(client, "<script>window.location.href=\"?asset_cache_confirm_arrival=[job]\"</script>", "window=asset_cache_browser")
 
 	var/t = 0
-	var/timeout_time = ASSET_CACHE_SEND_TIMEOUT * client.sending.len
+	var/timeout_time = ASSET_CACHE_SEND_TIMEOUT * length(client.sending)
 	while(client && !client.completed_asset_jobs.Find(job) && t < timeout_time) // Reception is handled in Topic()
 		sleep(1) // Lock up the caller until this is received.
 		t++
@@ -264,8 +264,16 @@ var/global/list/asset_datums = list()
 		"fa-regular-400.woff" = 'html/font-awesome/webfonts/fa-regular-400.woff',
 		"fa-solid-900.eot"    = 'html/font-awesome/webfonts/fa-solid-900.eot',
 		"fa-solid-900.woff"   = 'html/font-awesome/webfonts/fa-solid-900.woff',
+		"fa-brands-400.eot"  = 'html/font-awesome/webfonts/fa-brands-400.eot',
+		"fa-brands-400.woff" = 'html/font-awesome/webfonts/fa-brands-400.woff',
 		"font-awesome.css"    = 'html/font-awesome/css/all.min.css',
 		"v4shim.css"          = 'html/font-awesome/css/v4-shims.min.css'
+	)
+
+/datum/asset/simple/lobby
+	assets = list(
+		"Jost-Bold.ttf" = 'html/browser/Jost-Bold.ttf',
+		"Jost-Regular.ttf" = 'html/browser/Jost-Regular.ttf',
 	)
 
 /*

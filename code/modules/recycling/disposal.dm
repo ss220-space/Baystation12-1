@@ -32,6 +32,12 @@ GLOBAL_LIST_EMPTY(diversion_junctions)
 	atom_flags = ATOM_FLAG_CLIMBABLE
 	var/turn = DISPOSAL_FLIP_NONE
 	throwpass = TRUE
+	var/landchance = 75 // Chance to hit with thrown object
+
+/obj/machinery/disposal/small
+	icon = 'icons/obj/pipes/disposal_small.dmi'
+	density = FALSE
+	landchance = 20
 
 // create a new disposal
 // find the attached trunk (if present) and init gas resvr.
@@ -64,7 +70,7 @@ GLOBAL_LIST_EMPTY(diversion_junctions)
 	add_fingerprint(user, 0, I)
 	if(mode<=0) // It's off
 		if(isScrewdriver(I))
-			if(contents.len > LAZYLEN(component_parts))
+			if(length(contents) > LAZYLEN(component_parts))
 				to_chat(user, "Eject the items first!")
 				return
 			if(mode==0) // It's off but still not unscrewed
@@ -78,7 +84,7 @@ GLOBAL_LIST_EMPTY(diversion_junctions)
 				to_chat(user, "You attach the screws around the power connection.")
 				return
 		else if(isWelder(I) && mode==-1)
-			if(contents.len > LAZYLEN(component_parts))
+			if(length(contents) > LAZYLEN(component_parts))
 				to_chat(user, "Eject the items first!")
 				return
 			var/obj/item/weldingtool/W = I
@@ -351,21 +357,21 @@ GLOBAL_LIST_EMPTY(diversion_junctions)
 
 	// flush handle
 	if(flush)
-		overlays += image('icons/obj/pipes/disposal.dmi', "dispover-handle")
+		overlays += image(icon, "dispover-handle")
 
 	// only handle is shown if no power
 	if(!is_powered() || mode == -1)
 		return
 
 	// 	check for items/vomit in disposal - occupied light
-	if(contents.len > LAZYLEN(component_parts) || reagents.total_volume)
-		overlays += image('icons/obj/pipes/disposal.dmi', "dispover-full")
+	if(length(contents) > LAZYLEN(component_parts) || reagents.total_volume)
+		overlays += image(icon, "dispover-full")
 
 	// charging and ready light
 	if(mode == 1)
-		overlays += image('icons/obj/pipes/disposal.dmi', "dispover-charge")
+		overlays += image(icon, "dispover-charge")
 	else if(mode == 2)
-		overlays += image('icons/obj/pipes/disposal.dmi', "dispover-ready")
+		overlays += image(icon, "dispover-ready")
 
 // timed process
 // charge the gas reservoir and perform flush if ready
@@ -376,7 +382,7 @@ GLOBAL_LIST_EMPTY(diversion_junctions)
 
 	flush_count++
 	if( flush_count >= flush_every_ticks )
-		if( contents.len > LAZYLEN(component_parts) || reagents.total_volume)
+		if( length(contents) > LAZYLEN(component_parts) || reagents.total_volume)
 			if(mode == 2)
 				spawn(0)
 					flush()
@@ -484,7 +490,7 @@ GLOBAL_LIST_EMPTY(diversion_junctions)
 		var/obj/item/I = mover
 		if(istype(I, /obj/item/projectile))
 			return
-		if(prob(75))
+		if(prob(landchance))
 			I.forceMove(src)
 			visible_message("\The [I] lands in \the [src].")
 		else
@@ -562,7 +568,7 @@ GLOBAL_LIST_EMPTY(diversion_junctions)
 	if(!proximity || !istype(A, /turf/simulated/floor) || istype(A, /area/shuttle) || user.incapacitated() || !id_tag)
 		return
 	var/found = 0
-	for(var/obj/structure/disposalpipe/diversion_junction/D in world)
+	for(var/obj/structure/disposalpipe/diversion_junction/D in GLOB.diversion_junctions)
 		if(D.id_tag == src.id_tag)
 			found = 1
 			break

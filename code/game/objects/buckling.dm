@@ -78,7 +78,7 @@
 /obj/proc/buckle_mob(mob/living/M)
 	if(buckled_mob) //unless buckled_mob becomes a list this can cause problems
 		return 0
-	if(!istype(M) || (M.loc != loc) || !M.can_be_buckled || M.buckled || M.pinned.len || (buckle_require_restraints && !M.restrained()))
+	if(!istype(M) || (M.loc != loc) || !M.can_be_buckled || M.buckled || length(M.pinned) || (buckle_require_restraints && !M.restrained()))
 		return 0
 	if(ismob(src))
 		var/mob/living/carbon/C = src //Don't wanna forget the xenos.
@@ -95,7 +95,8 @@
 	if (buckle_sound)
 		playsound(src, buckle_sound, 20)
 	post_buckle_mob(M)
-	return 1
+	M.throw_alert("buckled", /obj/screen/alert/restrained/buckled)
+	return TRUE
 
 /obj/proc/unbuckle_mob()
 	if(buckled_mob && buckled_mob.buckled == src)
@@ -104,6 +105,7 @@
 		buckled_mob.anchored = initial(buckled_mob.anchored)
 		buckled_mob.UpdateLyingBuckledAndVerbStatus()
 		buckled_mob.update_floating()
+		buckled_mob.clear_alert("buckled")
 		buckled_mob = null
 
 		GLOB.destroyed_event.unregister(., src, /obj/proc/clear_buckle)
@@ -141,7 +143,7 @@
 		return 0
 	if(M == buckled_mob)
 		return 0
-	if (M.grabbed_by.len)
+	if (length(M.grabbed_by))
 		to_chat(user, SPAN_WARNING("\The [M] is being grabbed and cannot be buckled."))
 		return FALSE
 	if (!M.can_be_buckled)

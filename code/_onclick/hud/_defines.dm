@@ -82,9 +82,9 @@
 //Middle right (status indicators)
 #define ui_nutrition "EAST-1:28,CENTER-2:11"
 #define ui_nutrition_small "EAST-1:28,CENTER-2:24"
-#define ui_temp "EAST-1:28,CENTER-1:13"
-#define ui_health "EAST-1:28,CENTER:15"
-#define ui_internal "EAST-1:28,CENTER+1:17"
+#define ui_temp "EAST-1:28,CENTER-2:13"
+#define ui_health "EAST-1:28,CENTER-1:15"
+#define ui_internal "EAST-1:28,CENTER:17"
 									//borgs
 #define ui_borg_health "EAST-1:28,CENTER-1:13" //borgs have the health display where humans have the pressure damage indicator.
 #define ui_alien_health "EAST-1:28,CENTER-1:13" //aliens have the health display where humans have the pressure damage indicator.
@@ -132,3 +132,41 @@
 #define ui_pai_light "NORTH,WEST+3:6"
 #define ui_pai_rest "NORTH,WEST+4:6"
 
+// AI
+#define ui_ai_core "LEFT:6,BOTTOM:5"
+#define ui_ai_announcement "LEFT+1:10,BOTTOM:5"
+#define ui_ai_cam_track "LEFT+2:12,BOTTOM:5"
+#define ui_ai_cam_light "LEFT+3:14,BOTTOM:5"
+#define ui_ai_cam_change_network "LEFT+4:16,BOTTOM:5"
+#define ui_ai_sensor "CENTER-2:18,BOTTOM:5"
+#define ui_ai_crew_manifest "CENTER-1:20,BOTTOM:5"
+#define ui_ai_take_image "CENTER:22,BOTTOM:5"
+#define ui_ai_view_images "CENTER+1:24,BOTTOM:5"
+#define ui_ai_state_laws "CENTER+2:26,BOTTOM:5"
+#define ui_ai_call_shuttle "RIGHT-4:28,BOTTOM:5"
+
+#define ui_ai_up "RIGHT-1:30,BOTTOM+1:5"
+#define ui_ai_down "RIGHT-1:30,BOTTOM:5"
+
+// AI: Customization
+#define ui_ai_holo_change "RIGHT-1:30,BOTTOM+2:5"
+#define ui_ai_color "RIGHT-1:30,BOTTOM+3:5"
+#define ui_ai_core_icon "RIGHT-1:30,BOTTOM+4:5"
+#define ui_ai_status "RIGHT-1:30,BOTTOM+5:5"
+
+// AI: Tools
+#define ui_ai_power_override "LEFT:6,TOP:0"
+#define ui_ai_shutdown "LEFT+1:6,TOP:0"
+#define ui_ai_holo_mov "LEFT:6, TOP-1:0"
+
+// AI: Crew
+#define ui_ai_crew_mon "RIGHT-1:30,TOP:0"
+#define ui_ai_crew_rec "RIGHT-2:30, TOP:0"
+
+
+//Upper-middle right (alerts)
+#define ui_alert1 "EAST-1:28,CENTER+5:27"
+#define ui_alert2 "EAST-1:28,CENTER+4:25"
+#define ui_alert3 "EAST-1:28,CENTER+3:23"
+#define ui_alert4 "EAST-1:28,CENTER+2:21"
+#define ui_alert5 "EAST-1:28,CENTER+1:19"

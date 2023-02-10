@@ -19,7 +19,7 @@ SUBSYSTEM_DEF(inactivity)
 
 /datum/controller/subsystem/inactivity/fire(resumed, no_mc_tick)
 	if (!resumed)
-		if (!GLOB.clients.len)
+		if (!length(GLOB.clients))
 			return
 		queue = GLOB.clients.Copy()
 	var/kick_time = config.kick_inactive MINUTES
@@ -29,8 +29,9 @@ SUBSYSTEM_DEF(inactivity)
 		if (QDELETED(client))
 			continue
 		if (client.inactivity > kick_time && !client.holder)
-			log_access("AFK: [key_name(client)]")
-			to_chat_immediate(SPAN_WARNING("You were inactive for [config.kick_inactive] minutes and have been disconnected."))
+			log_misc("AFK: [key_name(client)]")
+		//	to_chat_immediate(SPAN_WARNING("You were inactive for [config.kick_inactive] minutes and have been disconnected."))
+			to_chat_immediate(SPAN_WARNING("Вы не проявляли активность в течение [config.kick_inactive] минут и были отсоеденены."))
 			qdel(client)
 		if (MC_TICK_CHECK)
 			queue.Cut(1, cut_until)

@@ -41,7 +41,7 @@
  * Whether or not the atom can be crushed and damaged by a closing airlock.
  */
 /atom/movable/proc/airlock_can_crush()
-	if (health_max)
+	if (get_max_health())
 		return TRUE
 	return FALSE
 
@@ -89,7 +89,7 @@
 		if(!new_turf.contains_dense_objects())
 			valid_turfs |= new_turf
 
-	while(valid_turfs.len)
+	while(length(valid_turfs))
 		T = pick(valid_turfs)
 		valid_turfs -= T
 		// Try to move us to the turf. If all turfs fail for some reason we will stay on this tile.

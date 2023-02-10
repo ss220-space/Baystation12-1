@@ -28,7 +28,7 @@
 		for(var/obj/item/organ/external/E in organs)
 			if(BP_IS_ROBOTIC(E))
 				robolimb_count++
-		full_prosthetic = (robolimb_count == organs.len)
+		full_prosthetic = (robolimb_count == length(organs))
 		update_emotes()
 	return full_prosthetic
 
@@ -286,32 +286,27 @@ var/global/list/organ_rel_size = list(
 
 	return returntext
 
+#define TICKS_PER_RECOIL_ANIM 2
+#define PIXELS_PER_STRENGTH_VAL 16
 
 /proc/shake_camera(mob/M, duration, strength=1)
-	if(!M || !M.client || M.shakecamera || M.stat || isEye(M) || isAI(M))
+	set waitfor = 0
+	if(!M || !M.client || M.stat || isEye(M) || isAI(M) || duration <= 0)
 		return
-	M.shakecamera = 1
-	spawn(1)
-		if(!M.client)
-			return
+	M.shakecamera = TRUE
+	strength = abs(strength)*PIXELS_PER_STRENGTH_VAL
+	var/steps = min(1, Floor(duration/TICKS_PER_RECOIL_ANIM))-1
+	animate(M.client, pixel_x = rand(-(strength), strength), pixel_y = rand(-(strength), strength), time = TICKS_PER_RECOIL_ANIM)
+	sleep(TICKS_PER_RECOIL_ANIM)
+	if(steps)
+		for(var/i = 1 to steps)
+			animate(M.client, pixel_x = rand(-(strength), strength), pixel_y = rand(-(strength), strength), time = TICKS_PER_RECOIL_ANIM)
+			sleep(TICKS_PER_RECOIL_ANIM)
+	M?.shakecamera = FALSE
+	animate(M.client, pixel_x = 0, pixel_y = 0, time = TICKS_PER_RECOIL_ANIM)
 
-		var/atom/oldeye=M.client.eye
-		var/aiEyeFlag = 0
-		if(istype(oldeye, /mob/observer/eye/aiEye))
-			aiEyeFlag = 1
-
-		var/x
-		for(x=0; x<duration, x++)
-			if(aiEyeFlag)
-				M.client.eye = locate(dd_range(1,oldeye.loc.x+rand(-strength,strength),world.maxx),dd_range(1,oldeye.loc.y+rand(-strength,strength),world.maxy),oldeye.loc.z)
-			else
-				M.client.eye = locate(dd_range(1,M.loc.x+rand(-strength,strength),world.maxx),dd_range(1,M.loc.y+rand(-strength,strength),world.maxy),M.loc.z)
-			sleep(1)
-			if(!M.client)
-				return
-
-		M.client.eye=oldeye
-		M.shakecamera = 0
+#undef TICKS_PER_RECOIL_ANIM
+#undef PIXELS_PER_STRENGTH_VAL
 
 
 /mob/proc/abiotic(full_body = FALSE)
@@ -345,7 +340,7 @@ var/global/list/intents = list(I_HELP,I_DISARM,I_GRAB,I_HURT)
 			else			return I_HURT
 
 //change a mob's act-intent. Input the intent as a string such as "help" or use "right"/"left
-/mob/verb/a_intent_change(input as text)
+/mob/proc/a_intent_change(input as text)
 	set name = "a-intent"
 	set hidden = 1
 
@@ -496,7 +491,7 @@ var/global/list/intents = list(I_HELP,I_DISARM,I_GRAB,I_HURT)
 
 	if(auth_weapons && !access_obj.allowed(src))
 		var/list/weapons = GetAllHeld(/obj/item/melee)
-		threatcount += 4 * weapons.len
+		threatcount += 4 * length(weapons)
 
 		if(istype(belt, /obj/item/gun) || istype(belt, /obj/item/melee))
 			threatcount += 2
@@ -624,7 +619,7 @@ var/global/list/intents = list(I_HELP,I_DISARM,I_GRAB,I_HURT)
 	var/success = 0
 	var/turf/end
 	var/candidates = L.Copy()
-	while(L.len)
+	while(length(L))
 		attempt = pick(L)
 		success = Move(attempt)
 		if(!success)

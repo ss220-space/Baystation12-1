@@ -13,6 +13,9 @@
 	req_access = list(list(access_heads, access_security))
 	var/datum/computer_file/data/warrant/active
 
+	drop_sound = 'sound/items/drop/device.ogg'
+	pickup_sound = 'sound/items/pickup/device.ogg'
+
 //look at it
 /obj/item/device/holowarrant/examine(mob/user, distance)
 	. = ..()
@@ -42,7 +45,7 @@
 	for(var/datum/computer_file/data/warrant/W in GLOB.all_warrants)
 		if(!W.archived)
 			warrants["[W.fields["namewarrant"]] ([capitalize(W.fields["arrestsearch"])])"] = W
-	if(warrants.len == 0)
+	if(length(warrants) == 0)
 		to_chat(user,SPAN_NOTICE("There are no warrants available"))
 		return
 	var/datum/computer_file/data/warrant/temp

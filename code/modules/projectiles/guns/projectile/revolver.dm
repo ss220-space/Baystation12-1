@@ -11,7 +11,8 @@
 	fire_delay = 12 //Revolvers are naturally slower-firing
 	ammo_type = /obj/item/ammo_casing/pistol/magnum
 	var/chamber_offset = 0 //how many empty chambers in the cylinder until you hit a round
-	mag_insert_sound = 'sound/weapons/guns/interaction/rev_magin.ogg'
+	empty_sound = "out_of_ammo_revolver"
+	mag_insert_sound = "revolver_reload"
 	mag_remove_sound = 'sound/weapons/guns/interaction/rev_magout.ogg'
 	accuracy = 2
 	accuracy_power = 8
@@ -32,8 +33,8 @@
 	SPAN_NOTICE("You hear something metallic spin and click."))
 	playsound(src.loc, 'sound/weapons/revolver_spin.ogg', 100, 1)
 	loaded = shuffle(loaded)
-	if(rand(1,max_shells) > loaded.len)
-		chamber_offset = rand(0,max_shells - loaded.len)
+	if(rand(1,max_shells) > length(loaded))
+		chamber_offset = rand(0,max_shells - length(loaded))
 
 /obj/item/gun/projectile/revolver/consume_next_projectile()
 	if(chamber_offset)

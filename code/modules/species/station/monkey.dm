@@ -94,7 +94,7 @@
 		for(var/obj/O in range(1,get_turf(H)))
 			if(O.simulated && O.Adjacent(H) && !is_type_in_list(O, no_touchie))
 				touchables += O
-		if(touchables.len)
+		if(length(touchables))
 			var/obj/touchy = pick(touchables)
 			touchy.attack_hand(H)
 
@@ -125,6 +125,7 @@
 	icobase = 'icons/mob/human_races/species/monkey/farwa_body.dmi'
 	deform = 'icons/mob/human_races/species/monkey/farwa_body.dmi'
 
+	greater_form = "Tajaran"
 	flesh_color = "#afa59e"
 	base_color = "#333333"
 	tail = "farwatail"

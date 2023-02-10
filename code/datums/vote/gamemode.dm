@@ -6,11 +6,11 @@
 	result_length = 3
 
 /datum/vote/gamemode/can_run(mob/creator, automatic)
-	if(!automatic && (!config.allow_vote_mode || !isadmin(creator)))
-		return FALSE // Admins and autovotes bypass the config setting.
 	if(GAME_STATE >= RUNLEVEL_GAME)
 		return FALSE
-	return ..()
+	if(automatic || check_rights(R_ADMIN, 0, creator))
+		return TRUE
+
 
 /datum/vote/gamemode/Process()
 	if(GAME_STATE >= RUNLEVEL_GAME)
@@ -22,7 +22,7 @@
 /datum/vote/gamemode/setup_vote(mob/creator, automatic)
 	..()
 	var/list/lobby_players = SSticker.lobby_players()
-	log_debug("MODE VOTE: Lobby Players: [lobby_players.len]")
+	log_debug("MODE VOTE: Lobby Players: [length(lobby_players)]")
 	var/list/skipped = list()
 	for (var/tag in SSticker.votable_modes)
 		var/datum/game_mode/mode = SSticker.mode_cache[tag]
@@ -63,10 +63,3 @@
 			return                 //Potenitally the new vote after restart can then be cancelled, to use this vote's result.
 		SSticker.master_mode = result[1]
 	SSticker.gamemode_vote_results = result.Copy()
-
-/datum/vote/gamemode/check_toggle()
-	return config.allow_vote_mode ? "Allowed" : "Disallowed"
-
-/datum/vote/gamemode/toggle(mob/user)
-	if(isadmin(user))
-		config.allow_vote_mode = !config.allow_vote_mode

@@ -11,7 +11,7 @@
 /obj/item/gun/projectile/pistol/on_update_icon()
 	..()
 	if(empty_icon)
-		if(ammo_magazine && ammo_magazine.stored_ammo.len)
+		if(ammo_magazine && length(ammo_magazine.stored_ammo))
 			icon_state = initial(icon_state)
 		else
 			icon_state = "[initial(icon_state)]-e"
@@ -50,7 +50,7 @@
 	screen_shake = 2
 	magazine_type = /obj/item/ammo_magazine/magnum
 	allowed_magazines = /obj/item/ammo_magazine/magnum
-	mag_insert_sound = 'sound/weapons/guns/interaction/hpistol_magin.ogg'
+	mag_insert_sound = "metal_slide_reload"
 	mag_remove_sound = 'sound/weapons/guns/interaction/hpistol_magout.ogg'
 	accuracy = 2
 	one_hand_penalty = 2
@@ -77,7 +77,7 @@
 
 /obj/item/gun/projectile/pistol/throwback/on_update_icon()
 	..()
-	if(ammo_magazine && ammo_magazine.stored_ammo.len)
+	if(ammo_magazine && length(ammo_magazine.stored_ammo))
 		icon_state = base_icon
 	else
 		icon_state = "[base_icon]-e"
@@ -158,7 +158,7 @@
 		icon_state = "pistol-silencer"
 	else
 		icon_state = "pistol"
-	if(!(ammo_magazine && ammo_magazine.stored_ammo.len))
+	if(!(ammo_magazine && length(ammo_magazine.stored_ammo)))
 		icon_state = "[icon_state]-e"
 
 /obj/item/silencer

@@ -173,54 +173,50 @@
 		return
 
 	user.set_machine(src)
-	var/dat = "<B><HR>[FONT_LARGE(name)]</B><BR><HR>"
-
+	var/dat
 	for(var/entry in species.hud.gear)
 		var/list/slot_ref = species.hud.gear[entry]
 		if((slot_ref["slot"] in list(slot_l_store, slot_r_store)))
 			continue
 		var/obj/item/thing_in_slot = get_equipped_item(slot_ref["slot"])
-		dat += "<BR><B>[slot_ref["name"]]:</b> <a href='?src=\ref[src];item=[slot_ref["slot"]]'>[istype(thing_in_slot) ? thing_in_slot : "nothing"]</a>"
+		dat += "<b>[slot_ref["name"]]:</b> <a href='?src=\ref[src];item=[slot_ref["slot"]]'>[istype(thing_in_slot) ? thing_in_slot : "nothing"]</a><BR>"
 		if(istype(thing_in_slot, /obj/item/clothing))
 			var/obj/item/clothing/C = thing_in_slot
-			if(C.accessories.len)
-				dat += "<BR><A href='?src=\ref[src];item=tie;holder=\ref[C]'>Remove accessory</A>"
-	dat += "<BR><HR>"
+			if(length(C.accessories))
+				dat += "<A href='?src=\ref[src];item=tie;holder=\ref[C]'>Remove accessory</A><BR>"
+	dat += "<HR><BR>"
 
 	if(species.hud.has_hands)
-		dat += "<BR><b>Left hand:</b> <A href='?src=\ref[src];item=[slot_l_hand]'>[istype(l_hand) ? l_hand : "nothing"]</A>"
-		dat += "<BR><b>Right hand:</b> <A href='?src=\ref[src];item=[slot_r_hand]'>[istype(r_hand) ? r_hand : "nothing"]</A>"
+		dat += "<b>Left hand:</b> <A href='?src=\ref[src];item=[slot_l_hand]'>[istype(l_hand) ? l_hand : "nothing"]</A><BR>"
+		dat += "<b>Right hand:</b> <A href='?src=\ref[src];item=[slot_r_hand]'>[istype(r_hand) ? r_hand : "nothing"]</A><BR>"
 
 	// Do they get an option to set internals?
 	if(istype(wear_mask, /obj/item/clothing/mask) || istype(head, /obj/item/clothing/head/helmet/space))
 		if(istype(back, /obj/item/tank) || istype(belt, /obj/item/tank) || istype(s_store, /obj/item/tank))
-			dat += "<BR><A href='?src=\ref[src];item=internals'>Toggle internals.</A>"
+			dat += "<A href='?src=\ref[src];item=internals'>Toggle internals.</A><BR>"
 
 	var/obj/item/clothing/under/suit = w_uniform
 	// Other incidentals.
 	if(istype(suit))
-		dat += "<BR><b>Pockets:</b> <A href='?src=\ref[src];item=pockets'>Empty or Place Item</A>"
+		dat += "<b>Pockets:</b> <A href='?src=\ref[src];item=pockets'>Empty or Place Item</A><BR>"
 		if(suit.has_sensor == 1)
-			dat += "<BR><A href='?src=\ref[src];item=sensors'>Set sensors</A>"
+			dat += "<A href='?src=\ref[src];item=sensors'>Set sensors</A><BR>"
 		if (suit.has_sensor && user.get_multitool())
-			dat += "<BR><A href='?src=\ref[src];item=lock_sensors'>[suit.has_sensor == SUIT_LOCKED_SENSORS ? "Unl" : "L"]ock sensors</A>"
+			dat += "<A href='?src=\ref[src];item=lock_sensors'>[suit.has_sensor == SUIT_LOCKED_SENSORS ? "Unl" : "L"]ock sensors</A><BR>"
 	if(handcuffed)
-		dat += "<BR><A href='?src=\ref[src];item=[slot_handcuffed]'>Handcuffed</A>"
-
-	for (var/obj/aura/web/W in auras)
-		dat += "<BR><A href='?src=\ref[src];webbed=1'>Webbed</A>"
-		break
+		dat += "<A href='?src=\ref[src];item=[slot_handcuffed]'>Handcuffed</A><BR>"
 
 	for(var/entry in worn_underwear)
 		var/obj/item/underwear/UW = entry
-		dat += "<BR><a href='?src=\ref[src];item=\ref[UW]'>Remove \the [UW]</a>"
+		dat += "<a href='?src=\ref[src];item=\ref[UW]'>Remove \the [UW]</a><BR>"
 
-	dat += "<BR><A href='?src=\ref[src];refresh=1'>Refresh</A>"
-	dat += "<BR><A href='?src=\ref[user];mach_close=mob[name]'>Close</A>"
+	dat += "<A href='?src=\ref[src];refresh=1'>Refresh</A><BR>"
+	dat += "<A href='?src=\ref[user];mach_close=mob[name]'>Close</A>"
 
-	show_browser(user, dat, text("window=mob[name];size=340x540"))
+	var/datum/browser/popup = new(user, "mob[name]", "[name] Inventory", 340, 540)
+	popup.set_content(dat)
+	popup.open()
 	onclose(user, "mob[name]")
-	return
 
 // called when something steps onto a human
 // this handles mulebots and vehicles
@@ -331,8 +327,8 @@
 
 	var/list/obj/item/organ/external/to_shock = trace_shock(initial_organ, floor_organ)
 
-	if(to_shock && to_shock.len)
-		shock_damage /= to_shock.len
+	if(to_shock && length(to_shock))
+		shock_damage /= length(to_shock)
 		shock_damage = round(shock_damage, 0.1)
 	else
 		return 0
@@ -525,7 +521,7 @@
 	var/msg
 	switch(key)
 		if("done")
-			show_browser(src, null, "window=flavor_changes")
+			close_browser(src, "window=flavor_changes")
 			return
 		if("general")
 			msg = sanitize(input(src,"Update the general description of your character. This will be shown regardless of clothing. Do not include OOC information here.","Flavor Text",html_decode(flavor_texts[key])) as message, extra = 0)
@@ -678,7 +674,7 @@
 	var/obj/item/organ/internal/stomach/stomach = internal_organs_by_name[BP_STOMACH]
 	var/nothing_to_puke = FALSE
 	if(should_have_organ(BP_STOMACH))
-		if(!istype(stomach) || (stomach.ingested.total_volume <= 5 && stomach.contents.len == 0))
+		if(!istype(stomach) || (stomach.ingested.total_volume <= 5 && length(stomach.contents) == 0))
 			nothing_to_puke = TRUE
 	else if(!(locate(/mob) in contents))
 		nothing_to_puke = TRUE
@@ -1006,7 +1002,7 @@
 					jostle_internal_object(organ, O)
 
 	var/obj/item/organ/internal/stomach/stomach = internal_organs_by_name[BP_STOMACH]
-	if(stomach && stomach.contents.len)
+	if(stomach && length(stomach.contents))
 		for(var/obj/item/O in stomach.contents)
 			if((O.edge || O.sharp) && prob(5))
 				var/obj/item/organ/external/parent = get_organ(stomach.parent_organ)
@@ -1538,13 +1534,13 @@
 		if(PULSE_NONE)
 			return 0
 		if(PULSE_SLOW)
-			return rand(40, 60)
+			return round(rand(40, 60) + 50 * (species.pulse_rate_mod - 1))
 		if(PULSE_NORM)
-			return rand(60, 90)
+			return round(rand(60, 90) + 75 * (species.pulse_rate_mod - 1))
 		if(PULSE_FAST)
-			return rand(90, 120)
+			return round(rand(90, 120) + 105 * (species.pulse_rate_mod - 1))
 		if(PULSE_2FAST)
-			return rand(120, 160)
+			return round(rand(120, 160) + 140 * (species.pulse_rate_mod - 1))
 		if(PULSE_THREADY)
 			return PULSE_MAX_BPM
 	return 0
@@ -1684,7 +1680,7 @@
 				status += "is grey and necrotic"
 			if(!org.is_usable() || org.is_dislocated())
 				status += "dangling uselessly"
-			if(status.len)
+			if(length(status))
 				src.show_message("My [org.name] is [SPAN_WARNING("[english_list(status)].")]",1)
 			else
 				src.show_message("My [org.name] is [SPAN_NOTICE("OK.")]",1)

@@ -126,7 +126,7 @@
 
 		else if(task == "rank")
 			var/new_rank
-			if(admin_ranks.len)
+			if(length(admin_ranks))
 				new_rank = input("Please select a rank", "New rank", null, null) as null|anything in (admin_ranks|"*New Rank*")
 			else
 				new_rank = input("Please select a rank", "New rank", null, null) as null|anything in list("Game Master","Game Admin", "Trial Admin", "Admin Observer","*New Rank*")
@@ -144,7 +144,7 @@
 						to_chat(usr, SPAN_COLOR("red", "Error: Topic 'editrights': Invalid rank"))
 						return
 					if(config.admin_legacy_system)
-						if(admin_ranks.len)
+						if(length(admin_ranks))
 							if(new_rank in admin_ranks)
 								rights = admin_ranks[new_rank]		//we typed a rank which already exists, use its rights
 							else
@@ -168,6 +168,8 @@
 			message_admins("[key_name_admin(usr)] edited the admin rank of [adm_ckey] to [new_rank]")
 			log_admin("[key_name(usr)] edited the admin rank of [adm_ckey] to [new_rank]")
 			log_admin_rank_modification(adm_ckey, new_rank)
+
+			log_permissions("[key_name(usr)] edited the admin rank of [adm_ckey] to [new_rank]")
 
 		else if(task == "permissions")
 			if(!D)	return
@@ -739,7 +741,7 @@
 				notbannedlist += job
 
 		//Banning comes first
-		if(notbannedlist.len) //at least 1 unbanned job exists in job_list so we have stuff to ban.
+		if(length(notbannedlist)) //at least 1 unbanned job exists in job_list so we have stuff to ban.
 			switch(alert("Temporary Ban?",,"Yes","No", "Cancel"))
 				if("Yes")
 					if(!check_rights(R_BAN, 0))
@@ -1130,6 +1132,29 @@
 
 		to_chat(M, SPAN_WARNING("You have been sent to the prison station!"))
 		log_and_message_admins("sent [key_name_admin(M)] to the prison station.")
+
+	else if(href_list["sendbacktolobby"])
+		if(!check_rights(R_ADMIN))
+			return
+
+		var/mob/M = locate(href_list["sendbacktolobby"])
+		if(!isobserver(M))
+			to_chat(usr, "<span class='notice'>You can only send ghost players back to the Lobby.</span>")
+			return
+
+		if(!M.client)
+			to_chat(usr, "<span class='warning'>[M] doesn't seem to have an active client.</span>")
+			return
+
+		if(alert(usr, "Send [key_name(M)] back to Lobby?", "Message", "Yes", "No") != "Yes")
+			return
+
+		log_admin("[key_name(usr)] has sent [key_name(M)] back to the Lobby.")
+		message_admins("[key_name(usr)] has sent [key_name(M)] back to the Lobby.")
+
+		var/mob/new_player/NP = new()
+		NP.ckey = M.ckey
+		qdel(M)
 
 	else if(href_list["tdome1"])
 		if(!check_rights(R_FUN))	return
@@ -1546,7 +1571,7 @@
 			var/data = ""
 			var/obj/item/paper_bundle/B = fax
 
-			for (var/page = 1, page <= B.pages.len, page++)
+			for (var/page = 1 to length(B.pages))
 				var/obj/pageobj = B.pages[page]
 				data += "<A href='?src=\ref[src];AdminFaxViewPage=[page];paper_bundle=\ref[B]'>Page [page] - [pageobj.name]</A><BR>"
 
@@ -1696,9 +1721,9 @@
 
 		var/list/offset = splittext(href_list["offset"],",")
 		var/number = dd_range(1, 100, text2num(href_list["object_count"]))
-		var/X = offset.len > 0 ? text2num(offset[1]) : 0
-		var/Y = offset.len > 1 ? text2num(offset[2]) : 0
-		var/Z = offset.len > 2 ? text2num(offset[3]) : 0
+		var/X = length(offset) > 0 ? text2num(offset[1]) : 0
+		var/Y = length(offset) > 1 ? text2num(offset[2]) : 0
+		var/Z = length(offset) > 2 ? text2num(offset[3]) : 0
 		var/tmp_dir = href_list["object_dir"]
 		var/obj_dir = tmp_dir ? text2num(tmp_dir) : 2
 		if(!obj_dir || !(obj_dir in list(1,2,4,8,5,6,9,10)))
@@ -2096,25 +2121,27 @@
 				log_and_message_admins("has forced [last_ckey]/([M]) to ghost and deactivate.")
 				return
 
-			var/obj/machinery/cryopod/C
-			if (isrobot(M))
-				for (var/obj/machinery/cryopod/robot/CP in SSmachines.machinery)
-					if (CP.occupant || !(CP.z in GLOB.using_map.station_levels))
-						continue
-					C = CP
-			else
-				for (var/obj/machinery/cryopod/CP in SSmachines.machinery)
-					if (CP.occupant || !(CP.z in GLOB.using_map.station_levels))
-						continue
-					C = CP
+			if (!istype(M.loc, /obj/machinery/cryopod))
+				var/obj/machinery/cryopod/C
+				if (isrobot(M))
+					for (var/obj/machinery/cryopod/robot/CP in SSmachines.machinery)
+						if (CP.occupant || !(CP.z in GLOB.using_map.station_levels))
+							continue
+						C = CP
+				else
+					for (var/obj/machinery/cryopod/CP in SSmachines.machinery)
+						if (CP.occupant || !(CP.z in GLOB.using_map.station_levels))
+							continue
+						C = CP
 
-			if (!C || C.occupant)
-				to_chat(usr, SPAN_WARNING("Could not find an empty cryopod!"))
-				return
+				if (!C || C.occupant)
+					to_chat(usr, SPAN_WARNING("Could not find an empty cryopod!"))
+					return
+
+				C.set_occupant(M)
 
 			log_and_message_admins("has put [last_ckey]/([M]) into a cryopod and ghosted them.")
 
-			C.set_occupant(M)
 			var/ghost = M.ghostize(FALSE)
 			if (ghost)
 				show_player_panel(M)

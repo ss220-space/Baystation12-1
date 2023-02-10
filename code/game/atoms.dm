@@ -333,7 +333,7 @@
 				pass |= istype(A, type)
 			if(!pass)
 				continue
-		if(A.contents.len)
+		if(length(A.contents))
 			found += A.search_contents_for(path,filter_path)
 	return found
 
@@ -377,7 +377,7 @@
 
 	to_chat(user, "[icon2html(src, user)] That's [f_name] [suffix]")
 	to_chat(user, desc)
-	if (health_max)
+	if (get_max_health())
 		examine_damage_state(user)
 	return TRUE
 
@@ -447,18 +447,19 @@
  * stronger.
  */
 /atom/proc/ex_act(severity, turf_breaker)
-	if (get_max_health())
+	var/max_health = get_max_health()
+	if (max_health)
 		// No hitsound here to avoid noise spam.
 		// Damage is based on severity and maximum health, with DEVASTATING being guaranteed death without any resistances.
 		var/damage_flags = turf_breaker ? DAMAGE_FLAG_TURF_BREAKER : EMPTY_BITFIELD
 		var/damage = 0
 		switch (severity)
 			if (EX_ACT_DEVASTATING)
-				damage = round(health_max * (rand(100, 200) / 100)) // So that even atoms resistant to explosions may still be heavily damaged at this severity. Effective range of 100% to 200%.
+				damage = round(max_health * (rand(100, 200) / 100)) // So that even atoms resistant to explosions may still be heavily damaged at this severity. Effective range of 100% to 200%.
 			if (EX_ACT_HEAVY)
-				damage = round(health_max * (rand(50, 100) / 100)) // Effective range of 50% to 100%.
+				damage = round(max_health * (rand(50, 100) / 100)) // Effective range of 50% to 100%.
 			if (EX_ACT_LIGHT)
-				damage = round(health_max * (rand(10, 50) / 100)) // Effective range of 10% to 50%.
+				damage = round(max_health * (rand(10, 50) / 100)) // Effective range of 10% to 50%.
 		if (damage)
 			damage_health(damage, DAMAGE_EXPLODE, damage_flags, severity)
 
@@ -609,7 +610,7 @@
 	var/cur_x = null
 	var/cur_y = null
 	var/list/y_arr = null
-	for(cur_x=1,cur_x<=GLOB.global_map.len,cur_x++)
+	for(cur_x = 1 to length(GLOB.global_map))
 		y_arr = GLOB.global_map[cur_x]
 		cur_y = y_arr.Find(src.z)
 		if(cur_y)
@@ -672,14 +673,14 @@
 
 	for(var/o in objs)
 		var/obj/O = o
-		if (exclude_objs?.len && (O in exclude_objs))
+		if (length(exclude_objs) && (O in exclude_objs))
 			exclude_objs -= O
 			continue
 		O.show_message(message, VISIBLE_MESSAGE, blind_message, AUDIBLE_MESSAGE)
 
 	for(var/m in mobs)
 		var/mob/M = m
-		if (exclude_mobs?.len && (M in exclude_mobs))
+		if (length(exclude_mobs) && (M in exclude_mobs))
 			exclude_mobs -= M
 			continue
 		if(M.see_invisible >= invisibility)
@@ -709,14 +710,14 @@
 
 	for(var/m in mobs)
 		var/mob/M = m
-		if (exclude_mobs?.len && (M in exclude_mobs))
+		if (length(exclude_mobs) && (M in exclude_mobs))
 			exclude_mobs -= M
 			continue
 		M.show_message(message,2,deaf_message,1)
 
 	for(var/o in objs)
 		var/obj/O = o
-		if (exclude_objs?.len && (O in exclude_objs))
+		if (length(exclude_objs) && (O in exclude_objs))
 			exclude_objs -= O
 			continue
 		O.show_message(message,2,deaf_message,1)
@@ -757,17 +758,6 @@
 		user.visible_message(SPAN_WARNING("[user.name] shakes \the [src]."), \
 					SPAN_NOTICE("You shake \the [src]."))
 		object_shaken()
-
-/**
- * Called when the atom is clicked on with an active grab.
- *
- * **Parameters**:
- * - `G` - The grab the atom was clicked on with.
- *
- * Returns boolean. Whether or not the interaction was handled. If `TRUE`, skips `attackby()` and `afterattack()` calls.
- */
-/atom/proc/grab_attack(obj/item/grab/G)
-	return FALSE
 
 /**
  * Verb to allow climbing onto an object. Passes directly to `/atom/proc/do_climb(usr)`.
@@ -938,7 +928,7 @@
 
 			var/obj/item/organ/external/affecting
 			var/list/limbs = BP_ALL_LIMBS //sanity check, can otherwise be shortened to affecting = pick(BP_ALL_LIMBS)
-			if(limbs.len)
+			if(length(limbs))
 				affecting = H.get_organ(pick(limbs))
 
 			if(affecting)

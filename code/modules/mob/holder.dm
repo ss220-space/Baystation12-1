@@ -8,7 +8,8 @@ var/global/list/holder_mob_icon_cache = list()
 	slot_flags = SLOT_HEAD | SLOT_HOLSTER
 
 	sprite_sheets = list(
-		SPECIES_VOX = 'icons/mob/species/vox/onmob_head_vox.dmi'
+		SPECIES_VOX = 'icons/mob/species/vox/onmob_head_vox.dmi',
+		SPECIES_RESOMI = 'packs/infinity/icons/mob/species/resomi/onmob_head_resomi.dmi'
 		)
 
 	origin_tech = null
@@ -49,7 +50,7 @@ var/global/list/holder_mob_icon_cache = list()
 		for(var/mob/M in contents)
 			unregister_all_movement(last_holder, M)
 
-	if(istype(loc,/turf) || !(contents.len))
+	if(istype(loc,/turf) || !(length(contents)))
 		for(var/mob/M in contents)
 			var/atom/movable/mob_container = M
 			mob_container.dropInto(loc)
@@ -105,6 +106,10 @@ var/global/list/holder_mob_icon_cache = list()
 	overlays |= M.overlays
 	var/mob/living/carbon/human/H = loc
 	last_holder = H
+	if (M.pulledby)
+		if (M.pulledby.pulling == src)
+			M.pulledby.pulling = null
+		M.pulledby = null
 	register_all_movement(H, M)
 
 	update_held_icon()
@@ -141,7 +146,7 @@ var/global/list/holder_mob_icon_cache = list()
 /mob/living/var/holder_type
 
 /mob/living/proc/get_scooped(mob/living/carbon/human/grabber, self_grab)
-	if(!holder_type || buckled || pinned.len)
+	if(!holder_type || buckled || length(pinned))
 		return
 
 	if(self_grab)

@@ -164,6 +164,17 @@ var/global/list/string_slot_flags = list(
 		var/datum/grab/G = all_grabstates[grabstate_name]
 		G.refresh_updown()
 
+	// Keybindings
+	for(var/KB in subtypesof(/datum/keybinding))
+		var/datum/keybinding/keybinding = KB
+		if(!initial(keybinding.name))
+			continue
+		var/datum/keybinding/instance = new keybinding
+		global.keybindings_by_name[instance.name] = instance
+		if(length(instance.hotkey_keys))
+			for(var/bound_key in instance.hotkey_keys)
+				global.hotkey_keybinding_list_by_key[bound_key] += list(instance.name)
+
 	return 1
 
 //*** params cache
@@ -186,6 +197,6 @@ var/global/list/paramslist_cache = list()
 
 /proc/number_list_decode(number_list_data)
 	var/list/L = params2list(number_list_data)
-	for(var/i in 1 to L.len)
+	for(var/i in 1 to length(L))
 		L[i] = text2num(L[i])
 	return L

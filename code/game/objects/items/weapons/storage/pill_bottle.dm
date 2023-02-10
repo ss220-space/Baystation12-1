@@ -11,6 +11,8 @@
 	allow_quick_gather = 1
 	use_to_pickup = 1
 	use_sound = 'sound/effects/storage/pillbottle.ogg'
+	drop_sound = 'sound/items/drop/pillbottle.ogg'
+	pickup_sound = 'sound/items/pickup/pillbottle.ogg'
 	matter = list(MATERIAL_PLASTIC = 250)
 	var/wrapper_color
 	var/label
@@ -19,7 +21,7 @@
 /obj/item/storage/pill_bottle/afterattack(mob/living/target, mob/living/user, proximity_flag)
 	if(!proximity_flag || !istype(target) || target != user)
 		return 1
-	if(!contents.len)
+	if(!length(contents))
 		to_chat(user, SPAN_WARNING("It's empty!"))
 		return 1
 	var/zone = user.zone_sel.selecting
@@ -27,7 +29,7 @@
 		user.visible_message(SPAN_NOTICE("[user] pops a pill from \the [src]."))
 		playsound(get_turf(src), 'sound/effects/peelz.ogg', 50)
 		var/list/peelz = filter_list(contents,/obj/item/reagent_containers/pill)
-		if(peelz.len)
+		if(length(peelz))
 			var/obj/item/reagent_containers/pill/P = pick(peelz)
 			remove_from_storage(P)
 			P.attack(target,user)
@@ -43,7 +45,7 @@
 			return
 
 		var/list/peelz = filter_list(contents,/obj/item/reagent_containers/pill)
-		if(peelz.len)
+		if(length(peelz))
 			var/obj/item/reagent_containers/pill/P = pick(peelz)
 			remove_from_storage(P)
 			P.afterattack(target, user, proximity)
@@ -54,7 +56,7 @@
 	if(user.get_inactive_hand())
 		to_chat(user, SPAN_NOTICE("You need an empty hand to take something out."))
 		return
-	if(contents.len)
+	if(length(contents))
 		var/obj/item/I = contents[1]
 		if(!remove_from_storage(I,user))
 			return

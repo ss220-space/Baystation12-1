@@ -89,7 +89,7 @@
 		apply_effect(stun_amount, EFFECT_EYE_BLUR)
 
 	if (agony_amount)
-		apply_damage(agony_amount, DAMAGE_PAIN, def_zone, used_weapon)
+		apply_damage(agony_amount, DAMAGE_PAIN, def_zone, used_weapon = used_weapon)
 		apply_effect(agony_amount/10, EFFECT_STUTTER)
 		apply_effect(agony_amount/10, EFFECT_EYE_BLUR)
 
@@ -112,7 +112,7 @@
 	var/weapon_mention
 	if(I.attack_message_name())
 		weapon_mention = " with [I.attack_message_name()]"
-	visible_message(SPAN_DANGER("\The [src] has been [I.attack_verb.len? pick(I.attack_verb) : "attacked"][weapon_mention] by \the [user]!"))
+	visible_message(SPAN_DANGER("\The [src] has been [length(I.attack_verb)? pick(I.attack_verb) : "attacked"][weapon_mention] by \the [user]!"))
 
 	. = standard_weapon_hit_effects(I, user, effective_force, hit_zone)
 
@@ -315,6 +315,7 @@
 			if(!I.action)
 				I.action = new I.default_action_type
 			I.action.name = I.action_button_name
+			I.action.desc = I.action_button_desc
 			I.action.SetTarget(I)
 			I.action.Grant(src)
 	return
@@ -356,6 +357,7 @@
 		B.UpdateIcon()
 
 		B.SetName(A.UpdateName())
+		B.desc = A.UpdateDesc()
 
 		client.screen += B
 

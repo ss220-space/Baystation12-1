@@ -52,7 +52,7 @@
 	return
 
 /obj/structure/bookcase/attack_hand(mob/user as mob)
-	if(contents.len)
+	if(length(contents))
 		var/obj/item/book/choice = input("Which book would you like to remove from the shelf?") as null|obj in contents
 		if(choice)
 			if(!CanPhysicallyInteract(user))
@@ -87,8 +87,8 @@
 	return
 
 /obj/structure/bookcase/on_update_icon()
-	if(contents.len < 5)
-		icon_state = "book-[contents.len]"
+	if(length(contents) < 5)
+		icon_state = "book-[length(contents)]"
 	else
 		icon_state = "book-5"
 
@@ -140,6 +140,8 @@
 	icon_state ="book"
 	throw_speed = 1
 	throw_range = 5
+	drop_sound = 'sound/items/drop/book.ogg'
+	pickup_sound = 'sound/items/pickup/book.ogg'
 	w_class = ITEM_SIZE_NORMAL		 //upped to three because books are, y'know, pretty big. (and you could hide them inside eachother recursively forever)
 	attack_verb = list("bashed", "whacked", "educated")
 	var/dat			 // Actual page content

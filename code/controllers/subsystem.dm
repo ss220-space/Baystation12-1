@@ -78,7 +78,8 @@
 	can_fire = 0
 	flags |= SS_NO_FIRE
 	Master.subsystems -= src
-	return ..()
+	..()
+	return QDEL_HINT_HARDDEL_NOW
 
 //Queue it to run.
 //	(we loop thru a linked list until we get to the end or find the right point)
@@ -172,9 +173,8 @@
 	init_finish = Uptime()
 	. = (Uptime() - start_uptime) / 10
 	var/msg = "Initialized [name] subsystem within [.] second[. == 1 ? "" : "s"]!"
-	to_chat(world, SPAN_CLASS("boldannounce", "[msg]"))
 	log_world(msg)
-
+	to_titlescreen(msg)
 	init_state = SS_INITSTATE_DONE
 	initialized = TRUE	// Legacy.
 

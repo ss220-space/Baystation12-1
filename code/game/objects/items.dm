@@ -31,6 +31,7 @@
 
 	var/datum/action/item_action/action = null
 	var/action_button_name //It is also the text which gets displayed on the action button. If not set it defaults to 'Use [name]'. If it's not set, there'll be no button.
+	var/action_button_desc //A description for action button which will be displayed as tooltip.
 	var/default_action_type = /datum/action/item_action // Specify the default type and behavior of the action button for this atom.
 
 	//This flag is used to determine when items in someone's inventory cover others. IE helmets making it so you can't see glasses, etc.
@@ -87,6 +88,13 @@
 
 	var/attack_ignore_harm_check = FALSE
 
+	///Sound used when equipping the item into a valid slot
+	var/equip_sound
+	///Sound uses when picking the item up (into your hands)
+	var/pickup_sound = "generic_pickup"
+	///Sound uses when dropping the item, or when its thrown.
+	var/drop_sound = "generic_drop"
+
 
 /obj/item/New()
 	..()
@@ -115,6 +123,11 @@
 		storage.on_item_post_deletion(src) // must be done after deletion
 	else
 		return ..()
+
+//todo: Перенести в правильное место, пока что и так сойдёт
+/obj/item/device
+	pickup_sound = 'sound/items/pickup/device.ogg'
+	drop_sound = 'sound/items/drop/device.ogg'
 
 //Checks if the item is being held by a mob, and if so, updates the held icons
 /obj/item/proc/update_twohanding()
@@ -152,7 +165,7 @@
 
 /obj/item/ex_act(severity)
 	..()
-	if (health_max)
+	if (get_max_health())
 		return
 	switch(severity)
 		if(EX_ACT_DEVASTATING)
@@ -287,6 +300,28 @@
 	return
 
 
+/obj/item/proc/get_volume_by_throwforce_and_or_w_class()
+	if(throwforce && w_class)
+		return clamp((throwforce + w_class) * 5, 30, 100)// Add the item's throwforce to its weight class and multiply by 5, then clamp the value between 30 and 100
+	else if(w_class)
+		return clamp(w_class * 8, 20, 100) // Multiply the item's weight class by 8, then clamp the value between 20 and 100
+	else
+		return 0
+
+/obj/item/throw_impact(atom/hit_atom)
+	..()
+	if(isliving(hit_atom)) //Living mobs handle hit sounds differently.
+		var/volume = get_volume_by_throwforce_and_or_w_class()
+		if (throwforce > 0)
+			if(hitsound)
+				playsound(hit_atom, hitsound, volume, TRUE, -1)
+			else
+				playsound(hit_atom, 'sound/weapons/genhit.ogg', volume, TRUE, -1)
+		else
+			playsound(hit_atom, 'sound/weapons/throwtap.ogg', 1, volume, -1)
+	else if(drop_sound)
+		playsound(src, drop_sound, 50)
+
 /// Called whenever an item is removed from a slot, container, or anything else.
 /obj/item/proc/dropped(mob/user as mob)
 	if(randpixel)
@@ -297,6 +332,9 @@
 			item.update_twohanding()
 	GLOB.mob_unequipped_event.raise_event(user, src)
 	GLOB.item_unequipped_event.raise_event(src, user)
+
+	if(user && (z_flags & ZMM_MANGLE_PLANES))
+		addtimer(new Callback(user, /mob/proc/check_emissive_equipment), 0, TIMER_UNIQUE)
 
 
 // called just as an item is picked up (loc is not yet changed)
@@ -328,6 +366,14 @@ note this isn't called during the initial dressing of a player
 	if(user.client)	user.client.screen |= src
 	if(user.pulling == src)
 		user.stop_pulling()
+	if((slot_flags & slot))
+		if(equip_sound)
+			playsound(src, equip_sound, 50)
+		else if(drop_sound)
+			playsound(src, drop_sound, 50)
+	else if(slot == slot_l_hand || slot == slot_r_hand)
+		if(pickup_sound)
+			playsound(src, pickup_sound, 50)
 	var/mob/M = loc
 	if(!istype(M))
 		return
@@ -335,6 +381,9 @@ note this isn't called during the initial dressing of a player
 		item.update_twohanding()
 	GLOB.mob_equipped_event.raise_event(user, src, slot)
 	GLOB.item_equipped_event.raise_event(src, user, slot)
+
+	if(user && (z_flags & ZMM_MANGLE_PLANES))
+		addtimer(new Callback(user, /mob/proc/check_emissive_equipment), 0, TIMER_UNIQUE)
 
 
 /obj/item/proc/equipped_robot(mob/user)
@@ -649,7 +698,7 @@ var/global/list/slot_flags_enumeration = list(
 		generate_blood_overlay()
 
 	//apply the blood-splatter overlay if it isn't already in there
-	if(!blood_DNA.len)
+	if(!length(blood_DNA))
 		blood_overlay.color = blood_color
 		overlays += blood_overlay
 

@@ -126,6 +126,8 @@
 	name = "small parcel"
 	icon = 'icons/obj/storage.dmi'
 	icon_state = "deliverycrate3"
+	drop_sound = 'sound/items/drop/cardboardbox.ogg'
+	pickup_sound = 'sound/items/pickup/cardboardbox.ogg'
 	var/obj/item/wrapped = null
 	var/sortTag = null
 	var/examtext = null
@@ -133,7 +135,7 @@
 	var/tag_x
 
 /obj/item/smallDelivery/proc/unwrap(mob/user)
-	if (!contents.len || !Adjacent(user))
+	if (!length(contents) || !Adjacent(user))
 		return
 
 	user.put_in_hands(wrapped)
@@ -240,6 +242,9 @@
 	icon_state = "deliveryPaper"
 	w_class = ITEM_SIZE_NORMAL
 
+	drop_sound = 'sound/items/drop/wrapper.ogg'
+	pickup_sound = 'sound/items/pickup/wrapper.ogg'
+
 /obj/item/stack/package_wrap/twenty_five
 	amount = 25
 
@@ -345,11 +350,14 @@
 	slot_flags = SLOT_BELT
 	matter = list(MATERIAL_STEEL = 100, MATERIAL_GLASS = 34)
 
+	drop_sound = 'sound/items/drop/device.ogg'
+	pickup_sound = 'sound/items/pickup/device.ogg'
+
 /obj/item/device/destTagger/proc/openwindow(mob/user as mob)
 	var/dat = "<tt><center><h1><b>TagMaster 2.3</b></h1></center>"
 
 	dat += "<table style='width:100%; padding:4px;'><tr>"
-	for(var/i = 1, i <= GLOB.tagger_locations.len, i++)
+	for(var/i = 1 to length(GLOB.tagger_locations))
 		dat += "<td><a href='?src=\ref[src];nextTag=[GLOB.tagger_locations[i]]'>[GLOB.tagger_locations[i]]</a></td>"
 
 		if (i%4==0)
@@ -445,7 +453,7 @@
 	if(prob(35))
 		for(var/mob/living/carbon/human/L in src)
 			var/list/obj/item/organ/external/crush = L.get_damageable_organs()
-			if(!crush.len)
+			if(!length(crush))
 				return
 
 			var/obj/item/organ/external/E = pick(crush)
@@ -498,7 +506,7 @@
 /obj/machinery/disposal/deliveryChute/Destroy()
 	if(trunk)
 		trunk.linked = null
-	..()
+	return ..()
 
 /obj/item/stack/package_wrap/cyborg
 	name = "package wrapper synthesizer"

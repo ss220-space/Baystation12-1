@@ -58,9 +58,9 @@ SUBSYSTEM_DEF(jobs)
 				archetype_job_datums |= job
 
 	// Init skills.
-	if(!GLOB.skills.len)
+	if(!length(GLOB.skills))
 		GET_SINGLETON(/singleton/hierarchy/skill)
-	if(!GLOB.skills.len)
+	if(!length(GLOB.skills))
 		log_error(SPAN_WARNING("Error setting up job skill requirements, no skill datums found!"))
 
 	// Update title and path tracking, submap list, etc.
@@ -94,7 +94,7 @@ SUBSYSTEM_DEF(jobs)
 			for(var/alt_title in job.alt_titles)
 				titles_to_datums[alt_title] = job
 			if(job.department_flag)
-				for (var/I in 1 to GLOB.bitflags.len)
+				for (var/I in 1 to length(GLOB.bitflags))
 					if(job.department_flag & GLOB.bitflags[I])
 						LAZYDISTINCTADD(positions_by_department["[GLOB.bitflags[I]]"], job.title)
 						if (length(job.alt_titles))
@@ -146,6 +146,11 @@ SUBSYSTEM_DEF(jobs)
 	if(SSticker.mode && SSticker.mode.explosion_in_progress)
 		to_chat(joining, SPAN_WARNING("The [station_name()] is currently exploding. Joining would go poorly."))
 		return FALSE
+//[INF]
+	if(!job.is_required_roles_filled())
+		to_chat(joining, SPAN_WARNING("For joining as <b>\a [job.title]</b> there should be <b>\a [jointext(job.required_role, ", ")]</b> in crew."))
+		return FALSE
+//[/INF]
 	return TRUE
 
 /datum/controller/subsystem/jobs/proc/check_latejoin_blockers(mob/new_player/joining, datum/job/job)
@@ -198,6 +203,7 @@ SUBSYSTEM_DEF(jobs)
 			player.mind.assigned_role = rank
 			player.mind.role_alt_title = job.get_alt_title_for(player.client)
 			unassigned_roundstart -= player
+			log_game("Игрок [player.mind.key] вошел в раунд с профессией [rank] ([job.current_positions]/[position_limit])")
 			job.current_positions++
 			return 1
 	return 0
@@ -247,7 +253,7 @@ SUBSYSTEM_DEF(jobs)
 			var/datum/job/job = get_by_title(command_position)
 			if(!job)	continue
 			var/list/candidates = find_occupation_candidates(job, level)
-			if(!candidates.len)	continue
+			if(!length(candidates))	continue
 			// Build a weighted list, weight by age.
 			var/list/weightedCandidates = list()
 			for(var/mob/V in candidates)
@@ -269,7 +275,7 @@ SUBSYSTEM_DEF(jobs)
 						weightedCandidates[V] = 3 // Geezer.
 					else
 						// If there's ABSOLUTELY NOBODY ELSE
-						if(candidates.len == 1) weightedCandidates[V] = 1
+						if(length(candidates) == 1) weightedCandidates[V] = 1
 			var/mob/new_player/candidate = pickweight(weightedCandidates)
 			if(assign_role(candidate, command_position, mode = mode))
 				return 1
@@ -281,7 +287,7 @@ SUBSYSTEM_DEF(jobs)
 		var/datum/job/job = get_by_title(command_position)
 		if(!job)	continue
 		var/list/candidates = find_occupation_candidates(job, level)
-		if(!candidates.len)	continue
+		if(!length(candidates))	continue
 		var/mob/new_player/candidate = pick(candidates)
 		assign_role(candidate, command_position, mode = mode)
 
@@ -294,7 +300,7 @@ SUBSYSTEM_DEF(jobs)
 	for(var/mob/new_player/player in GLOB.player_list)
 		if(player.ready && player.mind && !player.mind.assigned_role)
 			unassigned_roundstart += player
-	if(unassigned_roundstart.len == 0)	return 0
+	if(length(unassigned_roundstart) == 0)	return 0
 	//Shuffle players and jobs
 	unassigned_roundstart = shuffle(unassigned_roundstart)
 	//People who wants to be assistants, sure, go on.
@@ -354,8 +360,8 @@ SUBSYSTEM_DEF(jobs)
 	//For ones returning to lobby
 	for(var/mob/new_player/player in unassigned_roundstart)
 		if(player.client.prefs.alternate_option == RETURN_TO_LOBBY)
-			player.ready = 0
-			player.new_player_panel()
+			player.ready = FALSE
+			GLOB.using_map.set_titlescreen_ready(player.client, player.ready)
 			unassigned_roundstart -= player
 	return TRUE
 
@@ -483,9 +489,16 @@ SUBSYSTEM_DEF(jobs)
 
 	if(!joined_late || job.latejoin_at_spawnpoints)
 		var/obj/S = job.get_roundstart_spawnpoint()
-
+/*[BAY]
 		if(istype(S, /obj/effect/landmark/start) && istype(S.loc, /turf))
 			H.forceMove(S.loc)
+[/BAY]*/
+		var/turf/truf = get_turf(S)
+		if((istype(S, /obj/effect/landmark/start) && isturf(truf)) || isturf(S))
+			H.forceMove(truf)
+			var/obj/structure/bed/b = locate(/obj/structure/bed) in truf
+			if(istype(b))
+				b.buckle_mob(H)
 		else
 			var/datum/spawnpoint/spawnpoint = job.get_spawnpoint(H.client)
 			H.forceMove(pick(spawnpoint.turfs))

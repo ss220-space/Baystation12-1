@@ -23,6 +23,7 @@
 	var/image/obfuscation = obfuscation_images[T]
 	if(!obfuscation)
 		obfuscation = image(icon, T, icon_state)
+		obfuscation.plane = EFFECTS_ABOVE_LIGHTING_PLANE
 		obfuscation.layer = OBFUSCATION_LAYER
 		if(!obfuscation_underlay)
 			// Creating a new icon of a fairly common icon state, adding some random color to prevent address searching, and hoping being static kills memory locality
@@ -126,7 +127,7 @@
 	if(updating)
 		return
 
-	if(seenby.len)
+	if(length(seenby))
 		updating = TRUE
 		spawn(UPDATE_BUFFER) // Batch large changes, such as many doors opening or closing at once
 			if(updating)     // Check if we're still updating, a forced update may have occured.

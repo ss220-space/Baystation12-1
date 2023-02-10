@@ -6,7 +6,7 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 	desc = "It's a g-g-g-g-ghooooost!" //jinkies!
 	icon = 'icons/mob/mob.dmi'
 	icon_state = "ghost"
-	appearance_flags = DEFAULT_APPEARANCE_FLAGS | KEEP_TOGETHER
+	appearance_flags = DEFAULT_APPEARANCE_FLAGS | KEEP_TOGETHER | LONG_GLIDE
 	blinded = 0
 	anchored = TRUE	//  don't get pushed around
 	universal_speak = TRUE
@@ -31,6 +31,7 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 
 	var/obj/item/device/multitool/ghost_multitool
 	var/list/hud_images // A list of hud images
+	var/last_revive_notification = null // world.time of last notification, used to avoid spamming players from defibs or cloners.
 
 /mob/observer/ghost/New(mob/body)
 	see_in_dark = 100
@@ -97,6 +98,11 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 				if(istype(target))
 					start_following(target)
 			return TOPIC_HANDLED
+
+	if(href_list["reenter"])
+		reenter_corpse()
+		return
+
 	return ..()
 
 /*
@@ -116,7 +122,7 @@ Works together with spawning an observer, noted above.
 		for(var/mob/living/target in oview(src, 14))
 			if(target.mind && target.mind.special_role)
 				target_list += target
-		if(target_list.len)
+		if(length(target_list))
 			assess_targets(target_list, src)
 	if(medHUD)
 		process_medHUD(src)
@@ -269,7 +275,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		return
 
 	var/list/area_turfs = get_area_turfs(thearea, shall_check_if_holy() ? list(/proc/is_not_holy_turf) : list())
-	if(!area_turfs.len)
+	if(!length(area_turfs))
 		to_chat(src, SPAN_WARNING("This area has been entirely made into sacred grounds, you cannot enter it while you are in this plane of existence!"))
 		return
 
@@ -380,7 +386,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	for(var/obj/machinery/atmospherics/unary/vent_pump/v in SSmachines.machinery)
 		if(!v.welded && v.z == T.z)
 			found_vents.Add(v)
-	if(found_vents.len)
+	if(length(found_vents))
 		vent_found = pick(found_vents)
 		host = new /mob/living/simple_animal/passive/mouse(vent_found.loc)
 	else
@@ -566,3 +572,18 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		M.respawned_time = world.time
 	M.key = key
 	log_and_message_admins("has respawned.", M)
+
+
+/mob/observer/ghost/proc/notify_revive(message, sound, atom/source)
+	if((last_revive_notification + 2 MINUTES) > world.time)
+		return
+	last_revive_notification = world.time
+
+	if(message)
+		to_chat(src, "<span class='alert'><font size=4>[message]</font></span>")
+		if(source)
+			throw_alert("\ref[source]_notify_revive", /obj/screen/alert/notify_cloning, new_master = source)
+
+	to_chat(src, "<span class='alert'><a href=?src=\ref[src];reenter=1>(Click to re-enter)</a></span>")
+	if(sound)
+		SEND_SOUND(src, sound(sound))

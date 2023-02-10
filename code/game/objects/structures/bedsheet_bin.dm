@@ -19,6 +19,9 @@ LINEN BINS
 	throw_range = 2
 	w_class = ITEM_SIZE_SMALL
 
+	drop_sound = 'sound/items/drop/cloth.ogg'
+	pickup_sound = 'sound/items/pickup/cloth.ogg'
+
 /obj/item/bedsheet/attackby(obj/item/I, mob/user)
 	if(is_sharp(I))
 		user.visible_message(SPAN_NOTICE("\The [user] begins cutting up \the [src] with \a [I]."), SPAN_NOTICE("You begin cutting up \the [src] with \the [I]."))
@@ -155,8 +158,8 @@ LINEN BINS
 		return
 	amount--
 	var/obj/item/bedsheet/B
-	if(sheets.len > 0)
-		B = sheets[sheets.len]
+	if(length(sheets) > 0)
+		B = sheets[length(sheets)]
 		sheets.Remove(B)
 	else
 		B = new /obj/item/bedsheet(loc)

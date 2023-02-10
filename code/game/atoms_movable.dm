@@ -1,10 +1,10 @@
 /atom/movable
 	layer = OBJ_LAYER
 
-	glide_size = 6
+	glide_size = 8
 
 	animate_movement = SLIDE_STEPS
-
+	appearance_flags = TILE_BOUND | PIXEL_SCALE | LONG_GLIDE
 	var/waterproof = TRUE
 	var/movable_flags
 
@@ -35,23 +35,30 @@
 	. = ..()
 
 /atom/movable/Destroy()
+
+	unregister_all_movement(loc, src) // unregister events before destroy to avoid expensive checking
+
 	if(!(atom_flags & ATOM_FLAG_INITIALIZED))
 		crash_with("\A [src] was deleted before initalization")
 	walk(src, 0)
 	for(var/A in src)
 		qdel(A)
 	forceMove(null)
+
 	if (pulledby)
 		if (pulledby.pulling == src)
 			pulledby.pulling = null
 		pulledby = null
+
 	if(LAZYLEN(movement_handlers) && !ispath(movement_handlers[1]))
 		QDEL_NULL_LIST(movement_handlers)
+
 	if (bound_overlay)
 		QDEL_NULL(bound_overlay)
-	if(virtual_mob && !ispath(virtual_mob))
-		qdel(virtual_mob)
-		virtual_mob = null
+
+	if(ismob(virtual_mob))
+		QDEL_NULL(virtual_mob)
+
 	return ..()
 
 /atom/movable/Bump(atom/A, yes)
@@ -64,7 +71,7 @@
 	..()
 
 /atom/movable/proc/forceMove(atom/destination)
-	if((gc_destroyed && gc_destroyed != GC_CURRENTLY_BEING_QDELETED) && !isnull(destination))
+	if(QDELETED(src) && !QDESTROYING(src) && !isnull(destination))
 		CRASH("Attempted to forceMove a QDELETED [src] out of nullspace!!!")
 	if(loc == destination)
 		return 0
@@ -197,6 +204,23 @@
 	master = null
 	. = ..()
 
+/atom/movable/overlay/use_grab(obj/item/grab/grab, list/click_params)
+	if (master)
+		return master.use_grab(grab, click_params)
+	return FALSE
+
+/atom/movable/overlay/use_weapon(obj/item/weapon, mob/user, list/click_params)
+	SHOULD_CALL_PARENT(FALSE)
+	if (master)
+		return master.use_weapon(weapon, user, click_params)
+	return FALSE
+
+/atom/movable/overlay/use_tool(obj/item/tool, mob/user, list/click_params)
+	SHOULD_CALL_PARENT(FALSE)
+	if (master)
+		return master.use_tool(tool, user, click_params)
+	return FALSE
+
 /atom/movable/overlay/attackby(obj/item/I, mob/user)
 	if (master)
 		return master.attackby(I, user)
@@ -242,6 +266,15 @@
 		var/turf/T = locate(new_x, new_y, new_z)
 		if(T)
 			forceMove(T)
+
+
+/**
+* A wrapper for setDir that should only be able to fail by living mobs.
+*
+* Called from [/atom/movable/proc/keyLoop], this exists to be overwritten by living mobs with a check to see if we're actually alive enough to change directions
+*/
+/atom/movable/proc/keybind_face_direction(direction)
+	return
 
 /atom/movable/proc/get_bullet_impact_effect_type()
 	return BULLET_IMPACT_NONE

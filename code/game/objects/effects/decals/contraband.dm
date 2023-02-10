@@ -13,6 +13,8 @@
 	desc = "The poster comes with its own automatic adhesive mechanism, for easy pinning to any vertical surface."
 	icon_state = "rolled_poster"
 	var/poster_type
+	drop_sound = 'sound/items/drop/wrapper.ogg'
+	pickup_sound = 'sound/items/pickup/wrapper.ogg'
 
 /obj/item/contraband/poster/New(maploading, given_poster_type)
 	if(given_poster_type && !ispath(given_poster_type, /singleton/poster))
@@ -107,7 +109,7 @@
 		if(give_poster_type)
 			poster_type = give_poster_type
 		else
-			poster_type = pick(subtypesof(/singleton/poster) - typesof(/singleton/poster/torch))
+			poster_type = pick(subtypesof(/singleton/poster) - typesof(/singleton/poster/torch) - typesof(/singleton/poster/nowallspawn))
 	if(torch_poster)
 		poster_type = pick(subtypesof(/singleton/poster/torch))
 	set_poster(poster_type)

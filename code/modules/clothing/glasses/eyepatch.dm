@@ -7,6 +7,9 @@
 	item_flags = ITEM_FLAG_WASHER_ALLOWED
 	var/flipped = FALSE // Indicates left or right eye; 0 = on the right
 
+	drop_sound = 'sound/items/drop/gloves.ogg'
+	pickup_sound = 'sound/items/pickup/gloves.ogg'
+
 /obj/item/clothing/glasses/eyepatch/verb/flip_patch()
 	set name = "Flip Patch"
 	set category = "Object"
@@ -60,6 +63,7 @@
 		eye.layer = ABOVE_LIGHTING_LAYER
 		eye.plane = EFFECTS_ABOVE_LIGHTING_PLANE
 		res.overlays += eye
+		user_mob.z_flags |= ZMM_MANGLE_PLANES
 	return res
 
 /obj/item/clothing/glasses/eyepatch/hud/security

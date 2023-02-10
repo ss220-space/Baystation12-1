@@ -84,9 +84,11 @@
 	//These only pertain to common. Languages are handled by mob/say_understands()
 	if (!speaking)
 		if (istype(other, /mob/living/carbon/alien/diona))
-			if(other.languages.len >= 2) //They've sucked down some blood and can speak common now.
+			if(length(other.languages) >= 2) //They've sucked down some blood and can speak common now.
 				return 1
 		if (istype(other, /mob/living/silicon))
+			return 1
+		if(istype(other, /mob/announcer))
 			return 1
 		if (istype(other, /mob/living/carbon/brain))
 			return 1

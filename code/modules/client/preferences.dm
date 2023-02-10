@@ -49,6 +49,9 @@
 	..()
 
 /datum/preferences/proc/setup()
+	// give them default keybinds too
+	key_bindings = deepCopyList(global.hotkey_keybinding_list_by_key)
+
 	if(!length(GLOB.skills))
 		GET_SINGLETON(/singleton/hierarchy/skill)
 	player_setup = new(src)
@@ -63,9 +66,6 @@
 			load_data()
 
 	sanitize_preferences()
-	if(client && istype(client.mob, /mob/new_player))
-		var/mob/new_player/np = client.mob
-		np.new_player_panel(TRUE)
 
 /datum/preferences/proc/load_data()
 	load_failed = null
@@ -204,10 +204,6 @@
 
 		if (winget(usr, "preferences_browser", "is-visible") == "true")
 			open_setup_window(usr)
-
-		if (istype(client.mob, /mob/new_player))
-			var/mob/new_player/M = client.mob
-			M.new_player_panel()
 
 		if (href_list["details"])
 			return 1

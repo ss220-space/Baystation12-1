@@ -12,6 +12,9 @@
 /obj/item/storage/fancy
 	item_state = "syringe_kit" //placeholder, many of these don't have inhands
 	opened = 0 //if an item has been removed from this container
+	drop_sound = 'sound/items/drop/cardboardbox.ogg'
+	pickup_sound = 'sound/items/pickup/cardboardbox.ogg'
+	use_sound = 'sound/items/storage/box.ogg'
 	var/obj/item/key_type //path of the key item that this "fancy" container is meant to store
 
 /obj/item/storage/fancy/on_update_icon()
@@ -27,7 +30,7 @@
 		return
 
 	var/key_name = initial(key_type.name)
-	if(!contents.len)
+	if(!length(contents))
 		to_chat(user, "There are no [key_name]s left in the box.")
 	else
 		var/key_count = count_by_type(contents, key_type)
@@ -147,6 +150,10 @@
 	throwforce = 2
 	slot_flags = SLOT_BELT
 
+	drop_sound = 'sound/items/drop/gloves.ogg'
+	pickup_sound = 'sound/items/pickup/gloves.ogg'
+	use_sound = 'sound/items/drop/paper.ogg'
+
 	key_type = /obj/item/clothing/mask/smokable/cigarette
 	startswith = list(/obj/item/clothing/mask/smokable/cigarette = 6)
 
@@ -159,14 +166,14 @@
 	// Don't try to transfer reagents to lighters
 	if(istype(W, /obj/item/clothing/mask/smokable/cigarette))
 		var/obj/item/clothing/mask/smokable/cigarette/C = W
-		reagents.trans_to_obj(C, (reagents.total_volume/contents.len))
+		reagents.trans_to_obj(C, (reagents.total_volume/length(contents)))
 	..()
 
 /obj/item/storage/fancy/cigarettes/attack(mob/living/carbon/M as mob, mob/living/carbon/user as mob)
 	if(!istype(M, /mob))
 		return
 
-	if(M == user && user.zone_sel.selecting == BP_MOUTH && contents.len > 0 && !user.wear_mask)
+	if(M == user && user.zone_sel.selecting == BP_MOUTH && length(contents) > 0 && !user.wear_mask)
 		// Find ourselves a cig. Note that we could be full of lighters.
 		var/obj/item/clothing/mask/smokable/cigarette/cig = null
 		for(var/obj/item/clothing/mask/smokable/cigarette/C in contents)
@@ -187,7 +194,7 @@
 		remove_from_storage(cig, null)
 		user.equip_to_slot(cig, slot_wear_mask)
 
-		reagents.maximum_volume = 5 * contents.len
+		reagents.maximum_volume = 5 * length(contents)
 		to_chat(user, SPAN_NOTICE("You take a cigarette out of the pack."))
 		update_icon()
 	else
@@ -296,6 +303,10 @@
 	slot_flags = SLOT_BELT
 	storage_slots = 7
 
+	drop_sound = 'sound/items/drop/shovel.ogg'
+	pickup_sound = 'sound/items/pickup/shovel.ogg'
+	use_sound = 'sound/items/storage/briefcase.ogg'
+
 	key_type = /obj/item/clothing/mask/smokable/cigarette/cigar
 	startswith = list(/obj/item/clothing/mask/smokable/cigarette/cigar = 6)
 
@@ -307,7 +318,7 @@
 /obj/item/storage/fancy/cigar/remove_from_storage(obj/item/W as obj, atom/new_location)
 	var/obj/item/clothing/mask/smokable/cigarette/cigar/C = W
 	if(!istype(C)) return
-	reagents.trans_to_obj(C, (reagents.total_volume/contents.len))
+	reagents.trans_to_obj(C, (reagents.total_volume/length(contents)))
 	..()
 
 /*
@@ -321,6 +332,10 @@
 	w_class = ITEM_SIZE_NORMAL
 	max_w_class = ITEM_SIZE_TINY
 	storage_slots = 12
+
+	use_sound = 'sound/items/drop/glass.ogg'
+	drop_sound = 'sound/items/drop/toolbox.ogg'
+	pickup_sound = 'sound/items/pickup/toolbox.ogg'
 
 	key_type = /obj/item/reagent_containers/glass/beaker/vial
 	startswith = list(/obj/item/reagent_containers/glass/beaker/vial = 12)
@@ -343,6 +358,10 @@
 	max_storage_space = null
 	storage_slots = 12
 	req_access = list(access_virology)
+
+	use_sound = 'sound/items/drop/glass.ogg'
+	drop_sound = 'sound/items/drop/toolbox.ogg'
+	pickup_sound = 'sound/items/pickup/toolbox.ogg'
 
 /obj/item/storage/lockbox/vials/New()
 	..()
